@@ -13,11 +13,12 @@ multvals.vim is an array library and needs to be copied to a plugins
 directory (or at least it needs to get loaded or sourced somehow).
 
 STEP 3
-copy vimDebug.vim to wherever you normally put your vim scripts.
+copy vimDebug.vim to a plugins directory or wherever you normally put your vim
+scripts.
 
 
 also make sure that the debuggers you wish to use are in your path (especially
-you java folks)
+you java folks.)
 
 
 
@@ -77,4 +78,4 @@ distribution under the GPL
 email: vimDebug at iijo dot org
 http://iijo.org
 
-$Id: INSTALL,v 1.2 2003/06/02 20:21:46 eric Exp eric $
+$Id: INSTALL,v 1.3 2003/06/23 21:34:01 eric Exp eric $

@@ -31,7 +31,7 @@ HIGHLY RECOMMENDED READING
 
 .:: requirements
 
-perl
+perl (tested with versions 5.6.0 and 5.8.0)
 vim with +signs compiled in.
 you do NOT need X running or +clientserver.  ie, you can debug over telnet.
 

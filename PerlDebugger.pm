@@ -10,7 +10,7 @@
 # email: vimDebug at iijo dot org
 # http://iijo.org
 #
-# $Id: PerlDebugger.pm,v 1.14 2003/06/02 20:26:15 eric Exp eric $
+# $Id: PerlDebugger.pm,v 1.17 2003/06/24 23:19:29 eric Exp eric $
 
 
 package PerlDebugger;
@@ -59,8 +59,8 @@ sub startDebugger   {
       open( my $oldIn, "<&STDIN" );
 
       sub afterinit   {
-         open( $DB::OUT, ">&", $oldOut );
-         open( $DB::IN, "<&", $oldIn );
+         open( $DB::OUT, ">&" . fileno( $oldOut ) );
+         open( $DB::IN,  "<&" . fileno( $oldIn  ) );
       }';
    close OUT;
    chmod 0600, ".perldb";
@@ -312,8 +312,17 @@ sub getLineInfo   {
    print ">>>" . $line . "<<<\n" if $DEBUG;
 
 
+   # ignore the current line code -- only interested in the line number
+   # information
+   # example:  "main::((eval 3)[debugTestCase.pl:5]:1):      my $foo = 1";
+   if( $line =~ /\):\t/ )   {
+      ( $line, my $throwaway ) = split( /\):\t/, $line );
+      $line .= '):';
+   }
+
    # ignore the nested junk the debugger returns when it hits code with an
    # eval() statement
+   # example:  "main::((eval 3)[debugTestCase.pl:5]:1):";
    while( $line =~ /\[.*\]/o )   {
       $line =~ s/^.*\[//;
       $line =~ s/\].*$//;
@@ -327,6 +336,9 @@ sub getLineInfo   {
       return "$2:$1";
    }
    elsif( $line =~ /\((.+):(\d+)\)/o )   {
+      return "$2:$1";
+   }
+   elsif( $line =~ /^(.+):(\d+)$/o )   {
       return "$2:$1";
    }
    elsif( $line =~ /Use \`q\' to quit or \`R\' to restart\.  \`h q\' for/o )   {

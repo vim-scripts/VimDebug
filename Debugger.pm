@@ -17,7 +17,7 @@
 # email: vimDebug at iijo dot org
 # http://iijo.org
 #
-# $Id: Debugger.pm,v 1.11 2003/06/02 20:18:27 eric Exp eric $
+# $Id: Debugger.pm,v 1.12 2003/06/23 21:33:25 eric Exp eric $
 
 
 package Debugger;
@@ -259,9 +259,9 @@ sub createDebuggerProcess()
 
       close $READ; close $WRITE; # debugger does not need them
 
-      open( STDOUT, ">&", $WORKER_WTR ) || die "Can't redirect stdout";
-      open( STDERR, ">&", $WORKER_WTR ) || die "Can't redirect stderr";
-      open( STDIN,  "<&", $WORKER_RDR ) || die "Can't redirect stdin";
+      open( STDOUT, ">&" . fileno($WORKER_WTR) ) || die "Can't redirect stdout";
+      open( STDERR, ">&" . fileno($WORKER_WTR) ) || die "Can't redirect stderr";
+      open( STDIN,  "<&" . fileno($WORKER_RDR) ) || die "Can't redirect stdin";
 
       # start debugger
       exec( @debuggerInvocationIncantation )
