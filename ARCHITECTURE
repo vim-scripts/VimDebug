@@ -1,0 +1,78 @@
+
+.:: some notes on the vimDebug architecture
+
+here is a description of how the streams are set up, and how commands are
+passed from vim to vdd to the debugger and vice versa:
+
+                     ---------------------
+                     |       vim         |
+                     |   (vimDebug.vim)  |
+                     ---------------------
+                   s:FROMvdd      s:TOvdd
+
+                           ^      |
+                           |      |
+                           |      |
+                           |      |
+         fifo: .vddTOvim   |      |   fifo: .vimTOvdd
+                           |      |
+                           |      |
+                           |      |
+                           |      v
+
+                     $TOvim       $FROMvim
+                     ---------------------
+                     |  vimDebug daemon  |
+                     |     (vdd.pl)      |
+                     ---------------------
+             $Debugger::READ      $Debugger::WRITE
+
+                           ^      |
+                           |      |
+                           |      |
+                           |      v
+
+       $Debugger::WORKER_WTR      $Debugger::WORKER_RDR
+
+                           ^      |
+                           |      |
+                           |      |
+                           |      v
+
+                      STDOUT      STDIN
+                  ---------------------------
+                  | forked debugger process |
+                  |  (either                |
+                  |   perl -d      or       |
+                  |   python -d    or       |
+                  |   jdb          or       |
+                  |   gdb          or       |
+                  |   whatever              |
+                  ---------------------------
+
+
+all debugger interfaces should inherit from Debugger.pm.  so for example,
+PerlDebugger and Jdb both inherit from Debugger.  the debugger Interfaces
+override the callback functions (like step(), _next(), etc.) in Debugger.  vdd
+calls these functions at the right time.  for example, when vim issues a step
+command to vdd, vdd will call $debugger->step() (where $debugger is
+an instance of PerlDebugger or Jdb or whatever).
+
+the Debugger class also provides utility functions for setting up streams and
+redirecting input and output.  this makes creating a new debugger interface
+for a new language much easier because the developer doesn't have to worry
+about those issues which can sometimes be a little tricky.
+
+
+
+
+
+
+
+(c) eric johnson 09.31.2002
+distribution under the GPL
+
+email: vimDebug at iijo dot org
+http://iijo.org
+
+$Id: ARCHITECTURE,v 1.2 2003/05/15 09:55:33 eric Exp $

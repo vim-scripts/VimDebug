@@ -1,0 +1,80 @@
+.:: install
+
+
+to install the vimDebug perl code:
+
+
+STEP 1
+put vdd.pl and killvd.pl in your path.  (make sure they're executable)
+place the debugger modules (*.pm) in the same directory as you put vdd.pl.
+
+STEP 2
+multvals.vim is an array library and needs to be copied to a plugins
+directory (or at least it needs to get loaded or sourced somehow).
+
+STEP 3
+copy vimDebug.vim to wherever you normally put your vim scripts.
+
+
+also make sure that the debuggers you wish to use are in your path (especially
+you java folks)
+
+
+
+
+
+
+.:: debugger specific install notes
+
+pdb (python debugger)
+
+   you need to set $dbgrPath in Pdb.pm if your pdb.py isn't located in
+   /usr/lib/python2.2
+
+
+jdb (java debugger)
+
+   if the code you are editing is in more than one directory, you are going
+   to want to do the following stuff.
+
+      - you will probably want to specify your classpath in the environment
+        variable CLASSPATH.  you could however pass it on the command line
+        using <Leader>s (see the README file).
+
+      - you will probably want to specify a source path so jdb knows where to
+        find your source code.  if you specify these directories in a ":"
+        seperated list (";" seperated list if you are on windows) in the
+        SOURCEPATH environment variable, vimDebug always uses the option
+        -sourcepath $SOURCEPATH (or -sourcepath %SOURCEPATH% on windows)
+        whenever it invokes jdb.
+
+      - in your vimrc you need to add your SOURCEPATH to the path.  so,
+        assuming you have a SOURCEPATH environment variable setup already,
+        you could just add this line to your .vimrc:
+           set path+=$SOURCEPATH
+
+        (technical babble: the reason this is necessary is that, for example,
+        when stepping, jdb doesn't report the current line number and a file
+        name.  instead it gives back a class name and the line number indicates
+        how many lines from the beginning of that class.  so when vimDebug
+        tries to highlight the next line code when you are stepping, it takes
+        the class name jdb gave, adds a .java and searches the path for
+        a file like that (:help find).  and yes this means that debugging
+        is probably foobared if you are using nested classes or more than
+        one class per file.  suggestions?)
+
+
+
+
+
+
+
+
+
+(c) eric johnson 09.31.2002
+distribution under the GPL
+
+email: vimDebug at iijo dot org
+http://iijo.org
+
+$Id: INSTALL,v 1.2 2003/06/02 20:21:46 eric Exp eric $

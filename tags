@@ -1,0 +1,148 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.2.3	//
+APP_EXITED	vimDebug.vim	/^let s:APP_EXITED        = "oops" " the application being debugged finished$/;"	v
+DBGRclearBreakPoint	vimDebug.vim	/^function! DBGRclearBreakPoint()$/;"	f
+DBGRcommand	vimDebug.vim	/^function! DBGRcommand( ... )$/;"	f
+DBGRcont	vimDebug.vim	/^function! DBGRcont()$/;"	f
+DBGRdoCurrentLineMagicStuff	vimDebug.vim	/^function! DBGRdoCurrentLineMagicStuff( lineInfo )$/;"	f
+DBGRfifosExist	vimDebug.vim	/^function! DBGRfifosExist()$/;"	f
+DBGRgetDebuggerName	vimDebug.vim	/^function! DBGRgetDebuggerName( fileName )$/;"	f
+DBGRgetFileExtension	vimDebug.vim	/^function! DBGRgetFileExtension( path )$/;"	f
+DBGRhandleCmdResult	vimDebug.vim	/^function! DBGRhandleCmdResult()$/;"	f
+DBGRhandleLineInfoFromDebugger	vimDebug.vim	/^function! DBGRhandleLineInfoFromDebugger()$/;"	f
+DBGRhandleProgramTermination	vimDebug.vim	/^function! DBGRhandleProgramTermination()$/;"	f
+DBGRjumpToLine	vimDebug.vim	/^function! DBGRjumpToLine( lineNumber, fileName )$/;"	f
+DBGRnext	vimDebug.vim	/^function! DBGRnext()$/;"	f
+DBGRplaceCurrentLineSign	vimDebug.vim	/^function! DBGRplaceCurrentLineSign( lineNumber, fileName )$/;"	f
+DBGRprintExpressionValue	vimDebug.vim	/^function! DBGRprintExpressionValue( ... )$/;"	f
+DBGRquit	vimDebug.vim	/^function! DBGRquit()$/;"	f
+DBGRrestart	vimDebug.vim	/^function! DBGRrestart()$/;"	f
+DBGRsetBreakPoint	vimDebug.vim	/^function! DBGRsetBreakPoint()$/;"	f
+DBGRstartVimDebuggerDaemon	vimDebug.vim	/^function! DBGRstartVimDebuggerDaemon( ... )$/;"	f
+DBGRstep	vimDebug.vim	/^function! DBGRstep()$/;"	f
+DBGRunplaceTheLastCurrentLineSign	vimDebug.vim	/^function! DBGRunplaceTheLastCurrentLineSign()$/;"	f
+DESTROY	Debugger.pm	/^sub DESTROY   {$/;"	s
+Debugger;	Debugger.pm	/^package Debugger;$/;"	p
+END	Debugger.pm	/^sub END  {$/;"	s
+END	vdd.pl	/^sub END   {$/;"	s
+FROMvdd	vimDebug.vim	/^let s:FROMvdd = ".vddTOvim"      " fifo to read  from vdd$/;"	v
+Gdb;	Gdb.pm	/^package Gdb;$/;"	p
+JDB	vimDebug.vim	/^let s:JDB               = 0      " we are using jdb$/;"	v
+Jdb;	Jdb.pm	/^package Jdb;$/;"	p
+Pdb;	Pdb.pm	/^package Pdb;$/;"	p
+PerlDebugger;	PerlDebugger.pm	/^package PerlDebugger;$/;"	p
+TOvdd	vimDebug.vim	/^let s:TOvdd   = ".vimTOvdd"      " fifo to write to   vdd$/;"	v
+Utils;	Utils.pm	/^package Utils;$/;"	p
+_kill	Debugger.pm	/^sub _kill   {$/;"	s
+_kill	vdd.pl	/^sub _kill   {$/;"	s
+_next	Debugger.pm	/^sub _next   {}$/;"	s
+_next	Gdb.pm	/^sub _next   {$/;"	s
+_next	Jdb.pm	/^sub _next   {$/;"	s
+_next	Pdb.pm	/^sub _next   {$/;"	s
+_next	PerlDebugger.pm	/^sub _next   {$/;"	s
+_next	vdd.pl	/^sub _next   {$/;"	s
+afterinit	PerlDebugger.pm	/^      sub afterinit   {$/;"	s
+applicationExited	PerlDebugger.pm	/^sub applicationExited   {$/;"	s
+breakPointArray	vimDebug.vim	/^let s:breakPointArray  = ""$/;"	v
+bufNr	vimDebug.vim	/^let s:bufNr             = 0$/;"	v
+clearBreakPoint	Debugger.pm	/^sub clearBreakPoint   {}$/;"	s
+clearBreakPoint	Gdb.pm	/^sub clearBreakPoint   {$/;"	s
+clearBreakPoint	Jdb.pm	/^sub clearBreakPoint   {$/;"	s
+clearBreakPoint	Pdb.pm	/^sub clearBreakPoint   {$/;"	s
+clearBreakPoint	PerlDebugger.pm	/^sub clearBreakPoint   {$/;"	s
+clearBreakPoint	vdd.pl	/^sub clearBreakPoint   {$/;"	s
+command	Debugger.pm	/^sub command   {}$/;"	s
+command	Gdb.pm	/^sub command   {$/;"	s
+command	Jdb.pm	/^sub command   {$/;"	s
+command	Pdb.pm	/^sub command   {$/;"	s
+command	PerlDebugger.pm	/^sub command   {$/;"	s
+command	vdd.pl	/^sub command {$/;"	s
+cont	Debugger.pm	/^sub cont   {}$/;"	s
+cont	Gdb.pm	/^sub cont   {$/;"	s
+cont	Jdb.pm	/^sub cont   {$/;"	s
+cont	Pdb.pm	/^sub cont   {$/;"	s
+cont	PerlDebugger.pm	/^sub cont   {$/;"	s
+cont	vdd.pl	/^sub cont   {$/;"	s
+createDebuggerProcess	Debugger.pm	/^sub createDebuggerProcess()$/;"	s
+deleteNamedPipes	vdd.pl	/^sub deleteNamedPipes   {$/;"	s
+dos	Utils.pm	/^sub dos   {$/;"	s
+fileName	vimDebug.vim	/^let s:fileName          = ""$/;"	v
+findFirstPrompt	Debugger.pm	/^sub findFirstPrompt   {}$/;"	s
+findFirstPrompt	Gdb.pm	/^sub findFirstPrompt   {$/;"	s
+findFirstPrompt	Jdb.pm	/^sub findFirstPrompt   {$/;"	s
+findFirstPrompt	Pdb.pm	/^sub findFirstPrompt   {$/;"	s
+findFirstPrompt	PerlDebugger.pm	/^sub findFirstPrompt   {$/;"	s
+getCommandLineOptions	vdd.pl	/^sub getCommandLineOptions   {$/;"	s
+getExpressionValue	Gdb.pm	/^sub getExpressionValue   {$/;"	s
+getExpressionValue	Jdb.pm	/^sub getExpressionValue   {$/;"	s
+getExpressionValue	Pdb.pm	/^sub getExpressionValue   {$/;"	s
+getExpressionValue	PerlDebugger.pm	/^sub getExpressionValue   {$/;"	s
+getLineInfo	PerlDebugger.pm	/^sub getLineInfo   {$/;"	s
+getLineNumberInfo	Gdb.pm	/^sub getLineNumberInfo   {$/;"	s
+getLineNumberInfo	Jdb.pm	/^sub getLineNumberInfo   {$/;"	s
+getPathAndFileName	Utils.pm	/^sub getPathAndFileName {$/;"	s
+getPathAndFileName	vdd.pl	/^sub getPathAndFileName {$/;"	s
+getUntilPrompt	Debugger.pm	/^sub getUntilPrompt   {$/;"	s
+getUntilPrompt	Jdb.pm	/^sub getUntilPrompt   {$/;"	s
+handleSignal	vdd.pl	/^sub handleSignal   {$/;"	s
+init	vdd.pl	/^sub init   {$/;"	s
+initialize	Debugger.pm	/^sub initialize   {$/;"	s
+isAnEmptyLine	PerlDebugger.pm	/^sub isAnEmptyLine   {$/;"	s
+lineNumber	vimDebug.vim	/^let s:lineNumber        = 0$/;"	v
+main	vdd.pl	/^sub main   {$/;"	s
+makeNamedPipe	Utils.pm	/^sub makeNamedPipe   {$/;"	s
+new	Debugger.pm	/^sub new   {$/;"	s
+parseCommandOutput	Pdb.pm	/^sub parseCommandOutput   {$/;"	s
+parseCommandResults	Gdb.pm	/^sub parseCommandResults   {$/;"	s
+parseOutput	Pdb.pm	/^sub parseOutput   {$/;"	s
+prepareStreams	Debugger.pm	/^sub prepareStreams()$/;"	s
+printExpressionValue	Debugger.pm	/^sub printExpressionValue   {}$/;"	s
+printExpressionValue	Gdb.pm	/^sub printExpressionValue   {$/;"	s
+printExpressionValue	Jdb.pm	/^sub printExpressionValue   {$/;"	s
+printExpressionValue	Pdb.pm	/^sub printExpressionValue   {$/;"	s
+printExpressionValue	PerlDebugger.pm	/^sub printExpressionValue   {$/;"	s
+printExpressionValue	vdd.pl	/^sub printExpressionValue   {$/;"	s
+programTerminated	vimDebug.vim	/^let s:programTerminated = 0$/;"	v
+quit	Debugger.pm	/^sub quit   {}$/;"	s
+quit	Gdb.pm	/^sub quit   {$/;"	s
+quit	Jdb.pm	/^sub quit   {$/;"	s
+quit	Pdb.pm	/^sub quit   {$/;"	s
+quit	PerlDebugger.pm	/^sub quit   {$/;"	s
+quit	vdd.pl	/^sub quit   {$/;"	s
+readFromVim	vdd.pl	/^sub readFromVim   {$/;"	s
+removeFileExtension	Debugger.pm	/^sub removeFileExtension {$/;"	s
+removePrompt	PerlDebugger.pm	/^sub removePrompt   {$/;"	s
+restart	Debugger.pm	/^sub restart   {}$/;"	s
+restart	Gdb.pm	/^sub restart   {$/;"	s
+restart	Jdb.pm	/^sub restart   {$/;"	s
+restart	Pdb.pm	/^sub restart   {$/;"	s
+restart	PerlDebugger.pm	/^sub restart   {$/;"	s
+restart	vdd.pl	/^sub restart   {$/;"	s
+sendToVim	vdd.pl	/^sub sendToVim   {$/;"	s
+sep	vimDebug.vim	/^let s:sep              = "-"                       " array separator$/;"	v
+setBreakPoint	Debugger.pm	/^sub setBreakPoint   {}$/;"	s
+setBreakPoint	Gdb.pm	/^sub setBreakPoint   {$/;"	s
+setBreakPoint	Jdb.pm	/^sub setBreakPoint   {$/;"	s
+setBreakPoint	Pdb.pm	/^sub setBreakPoint   {$/;"	s
+setBreakPoint	PerlDebugger.pm	/^sub setBreakPoint   {$/;"	s
+setBreakPoint	vdd.pl	/^sub setBreakPoint   {$/;"	s
+setupSignalHandlers	vdd.pl	/^sub setupSignalHandlers   {$/;"	s
+startDebugger	Debugger.pm	/^sub startDebugger   {}$/;"	s
+startDebugger	Gdb.pm	/^sub startDebugger   {$/;"	s
+startDebugger	Jdb.pm	/^sub startDebugger   {$/;"	s
+startDebugger	Pdb.pm	/^sub startDebugger   {$/;"	s
+startDebugger	PerlDebugger.pm	/^sub startDebugger   {$/;"	s
+startDebugger	vdd.pl	/^sub startDebugger   {$/;"	s
+step	Debugger.pm	/^sub step   {}$/;"	s
+step	Gdb.pm	/^sub step   {$/;"	s
+step	Jdb.pm	/^sub step   {$/;"	s
+step	Pdb.pm	/^sub step   {$/;"	s
+step	PerlDebugger.pm	/^sub step   {$/;"	s
+step	vdd.pl	/^sub step   {$/;"	s
+unix	Utils.pm	/^sub unix   {$/;"	s
+usage	vdd.pl	/^sub usage   {$/;"	s
+vimDebugRunning	vimDebug.vim	/^let g:vimDebugRunning = "0"$/;"	v

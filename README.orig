@@ -1,0 +1,47 @@
+vimDebug integrates your favorite debugger with vim.  it currently supports
+  gdb (the GNU debugger),
+  the perl debugger,
+  pdb (the python debugger), and
+  jdb (the java debugger)
+
+right now, the code has been tested on linux only and definately isn't going to
+work on windows without cygwin.  please let me know if this works or not on
+other platforms.
+
+there are still some bugs!  especially in jdb.  this is super beta alpha pre
+not yet version 1.0 software.
+
+if you would like to help out send patches to vimDebug at iijo dot org.
+especially patches to make this stuff work with windows or other platforms or
+to add support for a whole new debugger or anything else!  =)  check out the
+TODO file if you are bored.  thanks.
+
+
+   eric
+
+
+
+
+
+HIGHLY RECOMMENDED READING
+ - read the INSTALL file for installation instructions.
+ - read the USAGE   file for instructions on how to use vimDebug.
+
+
+
+.:: requirements
+
+perl
+vim with +signs compiled in.
+you do NOT need X running or +clientserver.  ie, you can debug over telnet.
+
+
+
+
+(c) eric johnson 09.31.2002
+distribution under the GPL
+
+email: vimDebug at iijo dot org
+http://iijo.org
+
+$Id: README,v 1.5 2003/06/03 00:21:33 eric Exp eric $

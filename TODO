@@ -1,0 +1,45 @@
+.:: todo
+
+- fix all the bugs
+- add a clear all break points feature.  this should be fairly easy.
+- you can only run one session per directory.  which is very not intuitive
+  for the user.  this should get fixed.
+- the perl debugger doesn't check the whole file for syntax before beginning
+  to debug.  it just jumps right in there.  it would be nice if vimDebug
+  showed the compile errors that came up as the user steps through the
+  code
+- add an optional "console mode"?  basically a window displaying cmd results?
+- add an optional stack frame window?
+
+greater os support
+- windows support
+- does vimDebug work on cygwin?  if not, make it happen.
+- does vimDebug work on solaris? if not, make it happen. (need a box to test on)
+- does vimDebug work on bsd?     if not, make it happen. (need a box to test on)
+- etc.
+
+more support for different debuggers
+- dbx support (SUN's C debugger)
+- should we borrow emacs java debugger code?  jdb is ok, but not great.  sun
+  wrote it more as an example of how to use the JDPA (java debugger
+  programmer's api), than for people to actually use.  should we implement our
+  own java debugger like the emacs folks did with their emacs jde
+  (http://jdee.sunsite.dk/)?  Sun's debugger api to make writing our own java
+  debugger easy-ish:
+  http://java.sun.com/j2se/1.4.1/docs/guide/jpda/architecture.html.
+- add new debuggers!  a vimscript debugger?  anyone know ruby?  assembly?
+
+
+
+
+
+
+
+
+(c) eric johnson 09.31.2002
+distribution under the GPL
+
+email: vimDebug at iijo dot org
+http://iijo.org
+
+$Id: TODO,v 1.3 2003/06/02 20:28:01 eric Exp eric $

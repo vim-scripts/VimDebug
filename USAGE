@@ -1,0 +1,75 @@
+.:: USAGE
+
+open some source code in vi.  if you, for example, open up the file
+getWeather.pl, and hit <F12>, the perl debugger is launched in the background
+(perl -d getWeather.pl).  the debugger that is used is automagically chosen
+according to file extension.
+
+the following is a list of commands that allow you to play with the debugger
+(if you want to customize these keymappings, edit vimDebug.vim):
+
+<F12>      starts the debugger
+<Leader>s/ starts the debugger with command line arguments that you type in
+<F10>      restart debugger.  break points are ALWAYS saved (for all dbgrs)
+<F11>      exit the debugger
+
+<F6>       next
+<F7>       step
+<F8>       continue
+
+<Leader>b  set break point on the current line
+<Leader>c  clear break point on the current line
+
+<Leader>v  print the value of variable under the cursor
+<Leader>v/ print the value of an expression that you type in
+
+<Leader>/  type in a command for the debugger to execute, and echo the result.
+           (note that its not hard to make everything crash horribly with this
+           command if you do something like change the prompt.)
+
+
+
+.:: A SUGGESTION
+
+sometimes, when debugging, you will step over a function, for example, and in
+that function, your code will get stuck in an infinite loop.  this is
+frustrating because vi gets hung in limbo forever and you can't control-c out
+of it.  (any suggestions?  perhaps gvim --remote-send should be used instead of
+pipes).  my temporary solution is to use a script called killallvd.pl.  to use
+it you should be in the directory you are running vim from.  then run
+'killallvd.pl'.  killallvd.pl will pause.  while its paused, go back to your
+vim window (it should now respond) and exit the debugger (<F11>).  killallvd.pl
+will then finish up and exit.
+
+
+
+.:: DEBUGGER SPECIFIC USAGE NOTES
+
+pdb (python debugger)
+
+   make sure you don't change your python prompt from ">>> " or else you won't
+   be able to restart the debugger.  fixing this bug is a fairly high priority.
+
+
+jdb (java debugger)
+
+   make sure you read the jdb specific install notes in the INSTALL file.
+
+   make sure you compile with -g or you won't be able see values of objects or
+   variables.
+
+   finally, jdb is a little slow on startup and restart.  read the TODO file
+   for more information if you are interested in helping to fix this.
+
+
+
+
+
+
+(c) eric johnson 09.31.2002
+distribution under the GPL
+
+email: vimDebug at iijo dot org
+http://iijo.org
+
+$Id: USAGE,v 1.4 2003/06/02 23:41:46 eric Exp eric $
