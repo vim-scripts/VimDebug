@@ -1,4 +1,4 @@
-.:: developer howto
+DEVELOPER HOWTO
 
 if you want to contribute that would be fantastic.  check out the todo
 list.  or email me: vimDebug at iijo dot org.
@@ -8,7 +8,7 @@ here's how:
 
 
 
-.:: how to add a debugger for your language (its pretty easy)
+HOW TO ADD A DEBUGGER FOR YOUR LANGUAGE (ITS PRETTY EASY)
 
 step 0:
    learn perl.
@@ -20,44 +20,11 @@ step 2:
    create debuggerName.pm
 
    make it inherit from Debugger.pm, like this:
-      package Gdb;
-      use Debugger;
-      @ISA = qw( Debugger );
+      package VimDebug::Debugger::Gdb;
+      use VimDebug::Debugger;
+      @ISA = qw( VimDebug::Debugger );
    then implement the callback functions in Debugger.pm (step(), _next(),
    cont(), etc.).
-
-   some things you will probably want to do (but maybe not):
-      - don't override Debugger->initialize().  it creates some streams
-        for you.  then when you implement startDebugger(), call the
-        Debugger->createProcess() utility function.
-
-        if you do all that, you *shouldn't* have to worry about how to get
-        data to and from the debugger process.  if you want to send a command
-        to the debugger, just print to $Debugger::WRITE.  and if you want to
-        parse the debugger output, read from $Debugger::READ (or better yet,
-        use the $Debugger::getUntilPrompt() utility function)
-
-        this may not work if your debugger prints directly to a tty.
-
-      - take a look at the utility functions in Debugger.pm and Utils.pm.
-        they may save you some time.
-
-   some things you should do:
-      - if you get a response from the debugger indicating the application
-        being debugged has terminated, return $Debugger::APP_EXITED.  note
-        that after vimDebug.vim has received its first $Debugger::APP_EXITED,
-        the only things the user can do is exit or restart.
-
-      - see the comments on $Debugger::LINE_INFO
-
-      - when the debugger restarts, a vim user should never see their
-        break points cleared, even if you, the developer, have to implement
-        the feature because the debugger doesn't support it.  (see %breakPoints
-        in Pdb.pm for an example)
-
-
-   check out Gdb.pm and/or Pdb.pm for good examples to emulate.
-
 
 step 3:
    edit DBGRgetDebuggerName() in vimDebug.vim
@@ -81,14 +48,3 @@ step 4:
 
 
 
-
-
-
-
-(c) eric johnson 09.31.2002
-distribution under the GPL
-
-email: vimDebug at iijo dot org
-http://iijo.org
-
-$Id: DEVELOPER.HOWOTO,v 1.3 2003/06/02 20:18:05 eric Exp eric $

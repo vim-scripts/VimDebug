@@ -17,7 +17,7 @@
 # email: vimDebug at iijo dot org
 # http://iijo.org
 #
-# $Id: Debugger.pm,v 1.12 2003/06/23 21:33:25 eric Exp eric $
+# $Id: VimDebug.pm 27 2005-03-19 18:02:00Z eric $
 
 
 package Debugger;

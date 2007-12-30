@@ -1,31 +1,26 @@
-.:: install
+REQUIREMENTS
+
+perl 5.6.0+
+IPC::Run (perl module)
+vim with +signs compiled in.
 
 
-to install the vimDebug perl code:
+INSTALLATION
+
+To install this module, run the following commands:
+
+    perl Makefile.PL
+    make
+    make test
+    make install
+    cp vim/*.vim yourVimPluginDir
+
+Also make sure that the debuggers you intend to use are in your path so that
+VimDebug can invoke them.
 
 
-STEP 1
-put vdd.pl and killvd.pl in your path.  (make sure they're executable)
-place the debugger modules (*.pm) in the same directory as you put vdd.pl.
-
-STEP 2
-multvals.vim is an array library and needs to be copied to a plugins
-directory (or at least it needs to get loaded or sourced somehow).
-
-STEP 3
-copy vimDebug.vim to a plugins directory or wherever you normally put your vim
-scripts.
-
-
-also make sure that the debuggers you wish to use are in your path (especially
-you java folks.)
-
-
-
-
-
-
-.:: debugger specific install notes
+# the following is deprecated.  don't read:
+DEBUGGER SPECIFIC INSTALL NOTES
 
 pdb (python debugger)
 
@@ -36,7 +31,7 @@ pdb (python debugger)
 jdb (java debugger)
 
    if the code you are editing is in more than one directory, you are going
-   to want to do the following stuff.
+   to want to do the following stuff:
 
       - you will probably want to specify your classpath in the environment
         variable CLASSPATH.  you could however pass it on the command line
@@ -60,22 +55,11 @@ jdb (java debugger)
         how many lines from the beginning of that class.  so when vimDebug
         tries to highlight the next line code when you are stepping, it takes
         the class name jdb gave, adds a .java and searches the path for
-        a file like that (:help find).  and yes this means that debugging
-        is probably foobared if you are using nested classes or more than
-        one class per file.  suggestions?)
+        a file like that (:help find).  this means that debugging is probably
+        foobared if you are using nested classes or more than one class per
+        file.  suggestions?)
 
 
 
 
 
-
-
-
-
-(c) eric johnson 09.31.2002
-distribution under the GPL
-
-email: vimDebug at iijo dot org
-http://iijo.org
-
-$Id: INSTALL,v 1.3 2003/06/23 21:34:01 eric Exp eric $

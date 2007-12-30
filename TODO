@@ -1,15 +1,34 @@
-.:: todo
+TODO
+(key: + done, - not done)
 
-- fix all the bugs
-- add a clear all break points feature.  this should be fairly easy.
-- you can only run one session per directory.  which is very not intuitive
++ fix all the bugs
++ test suite
++ all signs get unplaced when you quit the debugger in one buffer.  if you are
+  running another debugger session inside another buffer this unplaces those
+  signs too.  annoying.
+- if buffer was edited, no debugger commands should work until user quits or
+  restarts the debugger?
++ keep track of breakpoints in vdd not vimDebug.vim.  this is because vdd gets
+  restarted each time and so breakpoints would be forgotten if we kept track of
+  them inside vdd.
++ restore break points when user restarts debugger.  clear all break points
+  when user quits debugger and then starts again.
++ add a clear all break points feature.  this should be fairly easy.
++ you can only run one session per directory.  which is very not intuitive
   for the user.  this should get fixed.
-- the perl debugger doesn't check the whole file for syntax before beginning
++ the perl debugger doesn't check the whole file for syntax before beginning
   to debug.  it just jumps right in there.  it would be nice if vimDebug
   showed the compile errors that came up as the user steps through the
   code
+- show application stdout from command()?  because lots of perl people will do:
+  print Dumper $foo to output the object more nicely.
+- perl debugger outputs to STDERR.  application outputs to STDOUT.  how should
+  i display application output to the user?  an optional separate window?  a
+  popup box?
+- when a runtime error or compile time error occurs, jump to the bad line
 - add an optional "console mode"?  basically a window displaying cmd results?
 - add an optional stack frame window?
+
 
 greater os support
 - windows support
@@ -17,6 +36,7 @@ greater os support
 - does vimDebug work on solaris? if not, make it happen. (need a box to test on)
 - does vimDebug work on bsd?     if not, make it happen. (need a box to test on)
 - etc.
+
 
 more support for different debuggers
 - dbx support (SUN's C debugger)
@@ -32,14 +52,3 @@ more support for different debuggers
 
 
 
-
-
-
-
-(c) eric johnson 09.31.2002
-distribution under the GPL
-
-email: vimDebug at iijo dot org
-http://iijo.org
-
-$Id: TODO,v 1.3 2003/06/02 20:28:01 eric Exp eric $

@@ -1,37 +1,6 @@
-.:: known bugs
+KNOWN BUGS
 
-
-
-- !!! strange bug occasionally happens.  the debugger doesn't always step when
-  its told to.  if you restart it (<F10>), then it may step or it may not.
-  this is really annoying.  does anyone know what i'm doing wrong?  or even how
-  to reliably recreate it?  if you restart vi it goes away.
-
-.:: known bugs in vimDebug.vim (vim script stuff)
-- sometimes, when debugging, the you will step over a function, for example,
-  and in that function, your code will get stuck in an infinite loop.  this is
-  frustrating because vi gets hung in limbo forever and you can't control-c out
-  of it.  (any suggestions?  perhaps gvim --remote-send should be used instead
-  of pipes).
-
-.:: known bugs in Jdb (java debugger)
-- things get foobared if you are debugging nested classes or if you are
-  debugging a class that doesn't have its own file.
-
-.:: known bugs in Pdb (python debugger)
-- if the user changed their python prompt, vimDebug is going break on
-  restart().
-
-
-
-
-
-
-
-(c) eric johnson 09.31.2002
-distribution under the GPL
-
-email: vimDebug at iijo dot org
-http://iijo.org
-
-$Id: BUGS,v 1.4 2003/06/02 23:40:19 eric Exp eric $
+- all the break point stuff should be handled by VimDebug::Debugger functions.
+  currently there is an array to keep track of that stuff in vimscript.  and
+  there is an array to keep track of that stuff in some of the debugger
+  modules.
