@@ -7,6 +7,7 @@ if you want to customize these keymappings, edit vimDebug.vim:
 <F10>      restart debugger.  break points are ALWAYS saved (for all dbgrs)
 <F11>      exit the debugger
 
+<F2>       show console
 <F6>       next
 <F7>       step
 <F8>       continue

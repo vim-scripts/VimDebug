@@ -1,6 +1,7 @@
 TODO
 (key: + done, - not done)
 
+- switch from IPC::Run to IPC::Cmd?
 + fix all the bugs
 + test suite
 + all signs get unplaced when you quit the debugger in one buffer.  if you are

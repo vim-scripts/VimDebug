@@ -8,13 +8,14 @@
 "
 " $Id: vimDebug.vim 63 2005-10-04 22:14:23Z eric $
 "
-" vim: set ts=3 foldmethod=marker
 
 
 
 " key bindings
-map <F12>      :call DBGRstartVimDebuggerDaemon(' ')<cr>     " start debugger
+map <F12>      :call DBGRstartVimDebuggerDaemon(' ')<cr>
 map <Leader>s/ :DBGRstartVDD
+
+map <F2>       :call DBGRconsole()<CR>
 
 map <F7>       :call DBGRnext()<CR>
 map <F8>       :call DBGRstep()<CR>
@@ -24,12 +25,12 @@ map <Leader>b  :call DBGRsetBreakPoint()<CR>
 map <Leader>c  :call DBGRclearBreakPoint()<CR>
 map <Leader>ca :call DBGRclearAllBreakPoints()<CR>
 
-map <Leader>v/ :DBGRprintExpression
+map <Leader>v/ :DBGRprintExpression 
 map <Leader>v  :DBGRprintExpression2 expand("<cWORD>")<CR>   " print value
                                                              " of WORD under
                                                              " the cursor
 
-map <Leader>/  :DBGRcommand
+map <Leader>/  :DBGRcommand 
 
 map <F10>      :call DBGRrestart()<CR>
 map <F11>      :call DBGRquit()<CR>
@@ -58,6 +59,13 @@ sign define both        linehl=currentLine text=>>
 sign define empty       linehl=empty
 
 
+" global variables
+
+let g:DBGRprogramArgs     = ""
+let g:DBGRconsoleHeight   = 13
+let g:DBGRlineNumbers     = 1
+let g:DBGRshowConsole     = 1
+
 
 " script variables
 
@@ -76,13 +84,14 @@ let s:fileName        = ""
 let s:bufNr           = 0
 let s:programDone     = 0
 
+let s:consoleBufNr    = -99
+
 " note that these aren't really arrays.  its a string.  different values are
 " separated by s:sep.  manipulation of the 'array' is done with an array
 " library: http://vim.sourceforge.net/script.php?script_id=171
 let s:emptySignArray  = ""                           " array
 let s:breakPointArray = ""                           " array
 let s:sep             = "-"                          " array separator
-
 
 
 
@@ -102,13 +111,21 @@ function! DBGRstartVimDebuggerDaemon(...)
       return
    endif
 
-   " build command
+   " get program arguments
    let l:i = 1
-   let l:cmd = "vdd " . s:sessionId . " " . l:debugger . " '" . s:fileName . "'"
+   if a:0 == 0 || (a:0 == 1 && a:1 == " ")
+      let g:DBGRprogramArgs = input('program arguments: ', g:DBGRprogramArgs)
+   elseif l:i <= a:0
+      let g:DBGRprogramArgs = ""
+   endif
    while l:i <= a:0
-      exe 'let l:cmd = l:cmd . " " . a:' . l:i . '"'
+      exe 'let g:DBGRprogramArgs = g:DBGRprogramArgs . " " . a:' . l:i . '"'
       let l:i = l:i + 1
    endwhile
+
+   " build command
+   let l:cmd = "vdd " . s:sessionId . " " . l:debugger . " '" . s:fileName . "'"
+   let l:cmd = l:cmd . " " . g:DBGRprogramArgs
 
    " invoke the debugger
    exec "silent :! " . l:cmd . '&'
@@ -118,12 +135,18 @@ function! DBGRstartVimDebuggerDaemon(...)
 
    " loop until vdd says the debugger is done loading
    while !filewritable(s:FROMvdd)
+      " this works in gvim but is misleading on the console
+      " echo "\rwaiting for debugger to start (hit <C-c> to give up)..."
       continue
    endwhile
   "let l:debuggerReady = system('cat ' . s:FROMvdd)
 
    if has("autocmd")
      autocmd VimLeave * call DBGRquit()
+   endif
+
+   if g:DBGRshowConsole == 1
+      call DBGRconsole()
    endif
 
    redraw!
@@ -369,6 +392,7 @@ function! DBGRquit()
    call DBGRunplaceBreakPointSigns()
    call DBGRunplaceEmptySigns()
    call DBGRunplaceTheLastCurrentLineSign()
+   call DBGRsetNoLineNumbers()
 
    call system('echo "quit" >> ' . s:TOvdd)
 
@@ -387,9 +411,21 @@ function! DBGRquit()
 endfunction
 
 
-
 " utility functions
 
+function! DBGRplaceEmptySign()
+
+   let l:id       = DBGRcreateId(bufnr("%"), "1")
+   let l:fileName = bufname("%")
+
+   if !MvContainsElement(s:emptySignArray, s:sep, l:id) == 1
+
+      let s:emptySignArray = MvAddElement(s:emptySignArray, s:sep, l:id)
+      exe "sign place " . l:id . " line=1 name=empty file=" . l:fileName
+
+   endif
+
+endfunction
 function! DBGRunplaceEmptySigns()
 
    let l:oldBufNr = bufnr("%")
@@ -434,20 +470,17 @@ function! DBGRunplaceBreakPointSigns()
    let s:breakPointArray = ""
 
 endfunction
-" place an empty sign on line 1 of the file
-function! DBGRplaceEmptySign()
-
-   let l:id       = DBGRcreateId(bufnr("%"), "1")
-   let l:fileName = bufname("%")
-
-   if !MvContainsElement(s:emptySignArray, s:sep, l:id) == 1
-
-      let s:emptySignArray = MvAddElement(s:emptySignArray, s:sep, l:id)
-      exe "sign place " . l:id . " line=1 name=empty file=" . l:fileName
-
+function! DBGRsetLineNumbers()
+   if g:DBGRlineNumbers == 1
+      set number
    endif
-
 endfunction
+function! DBGRsetNoLineNumbers()
+   if g:DBGRlineNumbers == 1
+      set nonumber
+   endif
+endfunction
+" place an empty sign on line 1 of the file
 function! DBGRcreateId(bufNr, lineNumber)
    return a:bufNr * 10000000 + a:lineNumber
 endfunction
@@ -532,11 +565,13 @@ function! DBGRhandleCmdResult(...)
       redraw! | echo "\rthe application being debugged terminated"
 
    elseif match(l:cmdResult, '^' . s:COMPILER_ERROR) != -1
-      call confirm(substitute(l:cmdResult, '^' . s:COMPILER_ERROR, "", ""), "&Ok")
+      " call confirm(substitute(l:cmdResult, '^' . s:COMPILER_ERROR, "", ""), "&Ok")
+      call DBGRprint(substitute(l:cmdResult, '^' . s:COMPILER_ERROR, "", ""))
       call DBGRquit()
 
    elseif match(l:cmdResult, '^' . s:RUNTIME_ERROR) != -1
-      call confirm(substitute(l:cmdResult, '^' . s:RUNTIME_ERROR, "", ""), "&Ok")
+      " call confirm(substitute(l:cmdResult, '^' . s:RUNTIME_ERROR, "", ""), "&Ok")
+      call DBGRprint(substitute(l:cmdResult, '^' . s:RUNTIME_ERROR, "", ""))
       call DBGRquit()
 
    elseif l:cmdResult == s:DBGR_READY
@@ -549,9 +584,11 @@ function! DBGRhandleCmdResult(...)
       " messages i echo after returning.  grumble grumble.
       if match(l:cmdResult, "\n") != -1
          redraw!
-         call confirm(l:cmdResult, "&Ok")
+         " call confirm(l:cmdResult, "&Ok")
+         call DBGRprint(l:cmdResult)
       else
-         echo l:cmdResult
+         " echo l:cmdResult
+         call DBGRprint(l:cmdResult)
       endif
 
    endif
@@ -579,6 +616,8 @@ function! DBGRdoCurrentLineMagicStuff(lineInfo)
    call DBGRplaceEmptySign()
    call DBGRunplaceTheLastCurrentLineSign()              " unplace the old sign
    call DBGRplaceCurrentLineSign(l:lineNumber, l:fileName) " place the new sign
+   call DBGRsetLineNumbers()
+   "z. " scroll page so that this line is in the middle
 
    " set script variables for next time
    let s:lineNumber = l:lineNumber
@@ -608,6 +647,10 @@ function! DBGRjumpToLine(lineNumber, fileName)
 
    " jump to line
    exe ":" . a:lineNumber
+   normal z.
+   if foldlevel(a:lineNumber) != 0
+      normal zo
+   endif
 
    return bufname(l:fileName)
 endfunction
@@ -658,5 +701,28 @@ function! DBGRhandleProgramTermination()
    let s:programDone = 1
 endfunction
 
+
+" debugger console functions
+
+function! DBGRconsole()
+   new "debugger console"
+   exe "resize " . g:DBGRconsoleHeight
+   set buftype=nofile
+   let s:consoleBufNr = bufnr('%')
+   wincmd p
+endfunction
+function! DBGRprint(msg)
+   let l:consoleWinNr = bufwinnr(s:consoleBufNr)
+   if l:consoleWinNr == -1
+      call confirm(a:msg, "&Ok")
+      return
+   endif
+
+   exe l:consoleWinNr . "wincmd w"
+   call append('$', split(a:msg, '\n'))
+   call append('$', " ")
+   normal G
+   wincmd p
+endfunction
 
 

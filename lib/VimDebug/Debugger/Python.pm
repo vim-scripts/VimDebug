@@ -1,4 +1,4 @@
-# Ruby.pm
+# Python.pm
 #
 # perl debugger interface for vimDebug
 #
@@ -8,10 +8,10 @@
 # email: vimDebug at iijo dot org
 # http://iijo.org
 #
-# $Id: Ruby.pm 93 2007-12-22 21:05:20Z eric $
+# $Id: Python.pm 93 2007-12-22 21:05:20Z eric $
 
 
-package VimDebug::Debugger::Ruby;
+package VimDebug::Debugger::Python;
 
 use IPC::Run qw(start pump finish timeout);
 use VimDebug::Debugger qw(
@@ -27,6 +27,7 @@ use VimDebug::Debugger qw(
 @ISA = qw(VimDebug::Debugger);
 
 use Data::Dumper;
+use File::Spec;
 use strict;
 use vars qw(
     $dbgr
@@ -48,8 +49,8 @@ use vars qw(
 
 # set some global variables
 $DEBUG           = 0;
-$debuggerPath    = "ruby";
-$debuggerPromptA = '\(rdb:\d+\) $';
+$debuggerPath    = "pdb";
+$debuggerPromptA = '\(Pdb\) $';
 $debuggerPromptB = '';
 $debuggerPromptC = '';
 $debuggerPrompt  = "$debuggerPromptA";
@@ -70,7 +71,6 @@ sub startDebugger {
    $WRITE = ""; $READ  = ""; $ERR   = "";
 
    my   @incantation = $debuggerPath;
-   push(@incantation, "-rdebug");
    push(@incantation, $path);
    push(@incantation, @commandLineOptions);
 
@@ -117,6 +117,8 @@ sub setBreakPoint {
    my $fileName   = shift or die;
    my $ignoreMe;
 
+   $fileName = File::Spec->rel2abs($fileName);
+
    if (exists $self->{breakPointList}->{"$fileName:$lineNumber"}) {
       $self->clearBreakPoint($lineNumber, $fileName);
    }
@@ -137,8 +139,9 @@ sub clearBreakPoint {
    my $ignoreMe;
 
 
+   $fileName = File::Spec->rel2abs($fileName);
    my $breakPointCount = $self->{breakPointList}->{"$fileName:$lineNumber"};
-   $WRITE .= "del $breakPointCount\n";
+   $WRITE .= "clear $breakPointCount\n";
    $ignoreMe = $self->getUntilPrompt(); # clear STDERR buffer
    delete $self->{breakPointList}->{"$fileName:$lineNumber"};
 
@@ -204,8 +207,9 @@ sub restart {
    my $self = shift or die;
    my $ignoreMe;
 
+   # restart
    my $oldBreakPointList = $self->{breakPointList};
-
+   $WRITE .= "quit\n";
    my $rv = $self->startDebugger($path, @commandLineOptions);
    return $rv unless $rv =~ /$LINE_INFO/;
 
@@ -277,24 +281,15 @@ sub parseOutput {
    my $self   = shift or die;
    my $output = shift or die;
 
-   if($output =~ /syntax error/os) {
+   if($output =~ /SyntaxError/os) {
+      $output =~ s/$debuggerPrompt//os;
       chomp($output);
       return $COMPILER_ERROR . $output;
    }
-#   elsif($output =~ /^ at .* line \d+/om) {
-#      my $i = index($output, 'Debugged program terminated.  Use q');
-#      $output = substr($output, 0, $i);
-#      chomp($output);
-#      return $RUNTIME_ERROR . $output;
-#   }
-   elsif($output =~ /(.+):(\d+):.+:(.+)/om){return 0}
-   elsif($output =~ /(.+):(\d+):.+/om){return "$LINE_INFO$2:$1"}
-
-#   elsif($output =~ /\/perl5db.pl:/os)                     {return $APP_EXITED}
-#   elsif($output =~ /Use q to quit or R to restart/os)     {return $APP_EXITED}
-#   elsif($output =~ /\' to quit or \`R\' to restart/os)    {return $APP_EXITED}
-   elsif($output eq $APP_EXITED)                            {return $APP_EXITED}
-   else                                                               {return 0}
+   elsif($output =~ /\<string\>\(1\)\<module\>\(\)-\>No/om) {return $APP_EXITED}
+   elsif($output =~ /The program finished and will be r/os) {return $APP_EXITED}
+   elsif($output =~ /^> (.+)\((\d+)\).+/om){return "$LINE_INFO$2:$1"}
+   else                                                   {return 0}
 }
 
 

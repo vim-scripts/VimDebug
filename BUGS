@@ -4,3 +4,11 @@ KNOWN BUGS
   currently there is an array to keep track of that stuff in vimscript.  and
   there is an array to keep track of that stuff in some of the debugger
   modules.
+
+- perl debugger prints ornaments to the screen and the console looks like crap
+  in vim.  console looks fine on gvim.  the opposite is true when you turn off
+  the console.
+
+- console needs a lot of work.  i really need to add a new pipe to show what the
+  debugger is saying.
+

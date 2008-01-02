@@ -8,8 +8,6 @@
 #
 #
 # ALL DEBUGGER PACKAGES SHOULD PASS ALL TESTS
-# ALL DEBUGGER PACKAGES SHOULD PASS ALL TESTS
-# ALL DEBUGGER PACKAGES SHOULD PASS ALL TESTS
 #
 # read the perldoc at the end of this file to see how to do this.
 #
@@ -43,18 +41,19 @@
 
 package VimDebug::Debugger::Test;
 
-use Cwd;
+use Carp;
 use VimDebug::Debugger qw($APP_EXITED $LINE_INFO $TIME $DEBUG);
 use Test::More;
+use File::Spec;
 
 use base Test::Class;
 use strict;
 
 
 sub createDebugger : Test(startup) {
-   my $self = shift or die;
+   my $self = shift or confess;
 
-   die "debuggerName not defined" unless exists $self->{debuggerName};
+   confess "debuggerName not defined" unless exists $self->{debuggerName};
 
    # load module
    my $moduleName = 'VimDebug/Debugger/' . $self->{debuggerName} . '.pm';
@@ -63,27 +62,28 @@ sub createDebugger : Test(startup) {
    # create debugger object
    my $className = 'VimDebug::Debugger::' . $self->{debuggerName};
    $self->{dbgr} = eval $className . "->new();";
-   die "no such module exists: $className" unless defined $self->{dbgr};
+   confess "no such module exists: $className" unless defined $self->{dbgr};
 
    # derive filename where test code is located
    $self->{testCode} = "t/" . $self->{debuggerName} . ".testCode";
 }
 
 sub startDebugger : Test(setup) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
    $dbgr->startDebugger($self->{testCode});
 }
 
 sub quitDebugger : Test(teardown) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
    $dbgr->quit();
 }
 
 sub step : Test(1) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
+   my $path = $self->pathRegexp;
    my $rv;
    $rv = $dbgr->step();
    $rv = $dbgr->step();
@@ -91,11 +91,11 @@ sub step : Test(1) {
    $rv = $dbgr->step();
    $rv = $dbgr->step(); # some dbgrs skip over the function call
    $rv = $dbgr->step(); # some dbgrs stop on the function call
-   ok($rv =~ /$LINE_INFO(5|6):$self->{testCode}/) or diag($rv);
+   ok($rv =~ /$LINE_INFO(5|6):$path/) or diag($rv);
 }
 
 sub next : Test(1) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
    my $rv;
    $rv = $dbgr->step();
@@ -104,44 +104,59 @@ sub next : Test(1) {
    $rv = $dbgr->step();
    $rv = $dbgr->next(); # some dbgrs skip over the function call
    $rv = $dbgr->next(); # some dbgrs stop on the function call
-   ok($rv =~ /$LINE_INFO(18|19):$self->{testCode}/) or diag($rv);
+   my $path = $self->pathRegexp;
+   ok($rv =~ /$LINE_INFO(18|19):$path/) or diag($rv);
 }
 
 sub cont : Test(1) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
    my $rv   = $dbgr->cont();
    ok($rv eq $APP_EXITED) or diag($rv);
 }
 
 sub restart : Test(2) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
    my $rv;
    $self->cont();
    $rv = $dbgr->restart(); # some dbgrs restart on the first line of code
    $rv = $dbgr->next();    # some dbgrs restart and pause before the first line
-   ok($rv =~ /$LINE_INFO(11|12):$self->{testCode}/) or diag($rv);
+   my $path = $self->pathRegexp;
+   ok($rv =~ /$LINE_INFO(11|12):$path/) or diag($rv);
 }
 
 sub breakPoints : Test(7) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
+   my $path = $self->pathRegexp;
    my $rv;
    $rv = $dbgr->setBreakPoint(13, $self->{testCode});
    $rv = $dbgr->cont();
-   ok($rv eq $LINE_INFO . "13:" . $self->{testCode}) or diag($rv);
+   ok($rv =~ /$LINE_INFO(13):$path/) or diag("before restart:" . $rv);
    $self->restart();
    $rv = $dbgr->cont();
-   ok($rv eq $LINE_INFO . "13:" . $self->{testCode}) or diag($rv);
+   ok($rv =~ /$LINE_INFO(13):$path/) or diag("after restart:" . $rv);
    $rv = $dbgr->clearBreakPoint(13, $self->{testCode});
    $self->restart();
    $rv = $dbgr->cont();
    ok($rv eq $APP_EXITED) or diag($rv);
 }
 
+sub clearAllBreakPoints : Test(1) {
+   my $self = shift or confess;
+   my $dbgr = $self->{dbgr};
+   my $path = $self->pathRegexp;
+   my $rv;
+   $rv = $dbgr->setBreakPoint(13, $self->{testCode});
+   $rv = $dbgr->setBreakPoint(14, $self->{testCode});
+   $rv = $dbgr->clearAllBreakPoints();
+   $rv = $dbgr->cont();
+   ok($rv eq $APP_EXITED) or diag($rv);
+}
+
 sub printExpression : Test(1) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
    my $rv;
    $rv = $dbgr->printExpression('1+1');
@@ -149,17 +164,24 @@ sub printExpression : Test(1) {
 }
 
 sub command : Test(3) {
-   my $self = shift or die;
+   my $self = shift or confess;
    my $dbgr = $self->{dbgr};
+   my $path = $self->pathRegexp;
    my $bool;
    my $rv;
    $rv = $dbgr->command("n"); # some dbgrs start on the first line of code
    $rv = $dbgr->command("n"); # some dbgrs start and pause before the first line
-   ok($rv =~ /$LINE_INFO(12|13):$self->{testCode}/) or diag($rv);
+   ok($rv =~ /$LINE_INFO(12|13):$path/) or diag($rv);
    $rv = $dbgr->command("beepinfoodoo123444e");
    ok(scalar($rv =~ /\n/s)) or diag("bad command: >>" . $rv . "<<");
    $rv = $dbgr->command("c");
    ok($rv eq $APP_EXITED) or diag($rv);
+}
+
+sub pathRegexp {
+   my $self = shift or confess;
+   my $path = File::Spec->rel2abs($self->{testCode});
+   return "($path|$self->{testCode})";
 }
 
 

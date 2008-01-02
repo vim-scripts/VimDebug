@@ -1,15 +1,17 @@
 use ExtUtils::MakeMaker;
 
+
 WriteMakefile(
    NAME         => 'VimDebug',
    AUTHOR       => 'Eric Johnson <perl at nospamthanks.iijo.nospamno.org>',
    VERSION_FROM => 'VERSION',
    EXE_FILES    => ['bin/vdd','bin/vddTester'],
    PREREQ_PM    => {
+      'File::Which'  => 0,
+      'Getopt::Long' => 0,
+      'IPC::Run'     => 0,
       'Test::Class'  => 0,
       'Test::More'   => 0,
-      'IPC::Run'     => 0,
-      'Getopt::Long' => 0,
    },
    dist         => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
    clean        => { FILES => 'VimDebug-*' },

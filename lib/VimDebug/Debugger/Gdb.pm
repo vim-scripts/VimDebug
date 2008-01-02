@@ -1,4 +1,4 @@
-# Ruby.pm
+# Gdb.pm
 #
 # perl debugger interface for vimDebug
 #
@@ -8,10 +8,10 @@
 # email: vimDebug at iijo dot org
 # http://iijo.org
 #
-# $Id: Ruby.pm 93 2007-12-22 21:05:20Z eric $
+# $Id: Gdb.pm 93 2007-12-22 21:05:20Z eric $
 
 
-package VimDebug::Debugger::Ruby;
+package VimDebug::Debugger::Gdb;
 
 use IPC::Run qw(start pump finish timeout);
 use VimDebug::Debugger qw(
@@ -27,6 +27,7 @@ use VimDebug::Debugger qw(
 @ISA = qw(VimDebug::Debugger);
 
 use Data::Dumper;
+use File::Spec;
 use strict;
 use vars qw(
     $dbgr
@@ -47,9 +48,9 @@ use vars qw(
 
 
 # set some global variables
-$DEBUG           = 0;
-$debuggerPath    = "ruby";
-$debuggerPromptA = '\(rdb:\d+\) $';
+$DEBUG           = 1;
+$debuggerPath    = "gdb";
+$debuggerPromptA = '\(gdb\) ';
 $debuggerPromptB = '';
 $debuggerPromptC = '';
 $debuggerPrompt  = "$debuggerPromptA";
@@ -70,7 +71,6 @@ sub startDebugger {
    $WRITE = ""; $READ  = ""; $ERR   = "";
 
    my   @incantation = $debuggerPath;
-   push(@incantation, "-rdebug");
    push(@incantation, $path);
    push(@incantation, @commandLineOptions);
 
@@ -80,7 +80,11 @@ sub startDebugger {
                                 '2>',    \$ERR,
                                 $timeout);
 
-   return $self->findFirstPrompt();
+   $self->findFirstPrompt();
+   $WRITE .= "start\n";
+   my $output   =  $self->getUntilPrompt();
+   my $lineInfo = ($self->parseOutput($output) or $self->quit());
+   return $lineInfo;
 }
 
 sub next {
@@ -117,14 +121,9 @@ sub setBreakPoint {
    my $fileName   = shift or die;
    my $ignoreMe;
 
-   if (exists $self->{breakPointList}->{"$fileName:$lineNumber"}) {
-      $self->clearBreakPoint($lineNumber, $fileName);
-   }
-
-   $WRITE .= "b $fileName:$lineNumber\n";
+   $fileName = File::Spec->rel2abs($fileName);
+   $WRITE .= "break $fileName:$lineNumber\n";
    $ignoreMe = $self->getUntilPrompt(); # clear STDERR buffer
-   $self->{breakPointList}->{"$fileName:$lineNumber"} = $self->{breakPointCount};
-   $self->{breakPointCount}++;
 
    return $DBGR_READY;
 }
@@ -137,10 +136,9 @@ sub clearBreakPoint {
    my $ignoreMe;
 
 
-   my $breakPointCount = $self->{breakPointList}->{"$fileName:$lineNumber"};
-   $WRITE .= "del $breakPointCount\n";
+   $fileName = File::Spec->rel2abs($fileName);
+   $WRITE .= "clear $fileName:$lineNumber\n";
    $ignoreMe = $self->getUntilPrompt(); # clear STDERR buffer
-   delete $self->{breakPointList}->{"$fileName:$lineNumber"};
 
    return $DBGR_READY;
 }
@@ -149,10 +147,8 @@ sub clearAllBreakPoints {
    my $self = shift or die;
    my $ignoreMe;
 
-   foreach my $breakPoint (keys(%{$self->{breakPointList}})) {
-      my ($fileName, $lineNumber) = split(/:/, $breakPoint);
-      $self->clearBreakPoint($lineNumber, $fileName);
-   }
+   $WRITE .= "clear\n";
+   $ignoreMe = $self->getUntilPrompt(); # clear STDERR buffer
 
    return $DBGR_READY;
 }
@@ -204,18 +200,16 @@ sub restart {
    my $self = shift or die;
    my $ignoreMe;
 
+   # restart
    my $oldBreakPointList = $self->{breakPointList};
-
+   $WRITE .= "kill\n";
+   $WRITE .= "y\n";
+   $ignoreMe = $self->getUntilPrompt(); # clear STDERR buffer
+   $WRITE .= "start\n";
+   my $output   =  $self->getUntilPrompt();
+   my $lineInfo = ($self->parseOutput($output) or $self->quit());
    my $rv = $self->startDebugger($path, @commandLineOptions);
    return $rv unless $rv =~ /$LINE_INFO/;
-
-   # restore break points
-   foreach my $breakPoint (keys(%$oldBreakPointList)) {
-      $self->{breakPointList}->{$breakPoint} = $self->{breakPointCount};
-      $self->{breakPointCount}++;
-      $WRITE .= "b $breakPoint\n";
-      $ignoreMe = $self->getUntilPrompt(); # clear STDERR buffer
-   }
 
    return $rv;
 }
@@ -277,24 +271,15 @@ sub parseOutput {
    my $self   = shift or die;
    my $output = shift or die;
 
-   if($output =~ /syntax error/os) {
+   if($output =~ /No;lkajsdfoiwqenvuiqweory./os) {
+      $output =~ s/$debuggerPrompt//os;
       chomp($output);
       return $COMPILER_ERROR . $output;
    }
-#   elsif($output =~ /^ at .* line \d+/om) {
-#      my $i = index($output, 'Debugged program terminated.  Use q');
-#      $output = substr($output, 0, $i);
-#      chomp($output);
-#      return $RUNTIME_ERROR . $output;
-#   }
-   elsif($output =~ /(.+):(\d+):.+:(.+)/om){return 0}
-   elsif($output =~ /(.+):(\d+):.+/om){return "$LINE_INFO$2:$1"}
-
-#   elsif($output =~ /\/perl5db.pl:/os)                     {return $APP_EXITED}
-#   elsif($output =~ /Use q to quit or R to restart/os)     {return $APP_EXITED}
-#   elsif($output =~ /\' to quit or \`R\' to restart/os)    {return $APP_EXITED}
-   elsif($output eq $APP_EXITED)                            {return $APP_EXITED}
-   else                                                               {return 0}
+   elsif($output =~ /__libc_start_main \(\)/om)    {return $APP_EXITED}
+   elsif($output =~ /Program exited with code /os) {return $APP_EXITED}
+   elsif($output =~ /^  (.+)\:(\d+)\:\d+:\w+:/om)  {return "$LINE_INFO$2:$1"}
+   else                                            {return 0}
 }
 
 

@@ -56,7 +56,7 @@ sub startDebugger {
 
 
    $ENV{"PERL5DB"}     = 'BEGIN {require "perl5db.pl";}';
-   $ENV{"PERLDB_OPTS"} = "ReadLine=0";
+   $ENV{"PERLDB_OPTS"} = "ReadLine=0,ornaments=''";
 
    my   @incantation = $debuggerPath;
    push(@incantation, "-d");
