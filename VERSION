@@ -1,3 +1,1 @@
-$Id: VERSION 58 2005-09-03 21:15:49Z eric $
-$VERSION = sprintf "%d.%d", q$Revision: 58 $ =~ /(\d+)/g;
-
+0.45

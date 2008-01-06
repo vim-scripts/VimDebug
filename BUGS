@@ -1,14 +1,9 @@
 KNOWN BUGS
 
-- all the break point stuff should be handled by VimDebug::Debugger functions.
-  currently there is an array to keep track of that stuff in vimscript.  and
-  there is an array to keep track of that stuff in some of the debugger
-  modules.
+- all the break point stuff should be handled in one place.  currently there is
+  an array to keep track of that stuff in vimscript.  and there is an array to
+  keep track of that stuff in some of the debugger modules.
 
-- perl debugger prints ornaments to the screen and the console looks like crap
-  in vim.  console looks fine on gvim.  the opposite is true when you turn off
-  the console.
+- doesn't work in windows.  might be able to fix this using gvim --session?
 
-- console needs a lot of work.  i really need to add a new pipe to show what the
-  debugger is saying.
-
+- this stuff just needs to be test and i need bug reports from people

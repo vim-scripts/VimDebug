@@ -5,10 +5,10 @@ bin/vdd
 BUGS
 DEVELOPER.HOWOTO
 INSTALL
-lib/VimDebug/Debugger.pm
-lib/VimDebug/Debugger/Perl.pm
-lib/VimDebug/Debugger/Ruby.pm
-lib/VimDebug/Debugger/Test.pm
+lib/VimDebug/DebuggerInterface.pm
+lib/VimDebug/DebuggerInterface/Perl.pm
+lib/VimDebug/DebuggerInterface/Ruby.pm
+lib/VimDebug/DebuggerInterface/Test.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml			Module meta-data (added by MakeMaker)

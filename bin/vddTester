@@ -20,7 +20,7 @@ use Term::ANSIColor;
 use Term::ReadLine;
 use vars qw(
    $unix $sessionId $debuggerName $sourcePath @commandLineOptions $help_option
-   $TOvdd $FROMvdd $sigIntCaught $quitting $term $PID $prevCommand
+   $ctlTOvdd $ctlFROMvdd $dbgTOvdd $dbgFROMvdd $sigIntCaught $quitting $term $PID $prevCommand
 );
 
 $unix         = 1; # valid values are 1 and 0
@@ -88,11 +88,16 @@ sub init {
 
    getCommandLineOptions();
 
-   $TOvdd   = ".vimTOvdd." . $sessionId;   # fifo to write to   vdd
-   $FROMvdd = ".vddTOvim." . $sessionId;   # fifo to read  from vdd
+   $ctlTOvdd   = ".ctl.vimTOvdd." . $sessionId; # control fifo; write to vdd
+   $ctlFROMvdd = ".ctl.vddTOvim."   . $sessionId; # control fifo; read from vim
+   $dbgTOvdd   = ".dbg.vimTOvdd." . $sessionId; # debug   fifo; write to vdd
+   $dbgFROMvdd = ".dbg.vddTOvim."   . $sessionId; # debug   fifo; read from vim
 
-   unlink $TOvdd;
-   unlink $FROMvdd;
+
+   unlink $ctlFROMvdd;
+   unlink $ctlTOvdd;
+   unlink $dbgFROMvdd;
+   unlink $dbgTOvdd;
 
    initializeReadLine();
 }
@@ -114,9 +119,12 @@ sub main {
          /^s$/           and $command = "step";
          /^c$/           and $command = "cont";
          /^q$/           and $command = "quit";
-         /^r$/i          and $command = "restart";
-         /^p:(.*)$/i     and $command = "printExpression:$1";
-         /^p (.*)$/i     and $command = "printExpression:$1";
+         /^r$/           and $command = "restart";
+         /^b (.+)$/      and $command = "break:$1:$sourcePath";
+         /^B (.+)$/      and $command = "clear:$1:$sourcePath";
+         /^l (.+)$/      and $command = "clearAll";
+         /^p (.+)$/      and $command = "printExpression:$1";
+         /^d (.+)$/      and $command = "command:$1";
       }
 
       sendToVDD($command);
@@ -150,11 +158,23 @@ sub makeNamedPipe {
 
 # blocks until there is something to read
 sub readFromVDD {
-   sleep 1 until -r $FROMvdd;
-   open(FROMvdd, "< $FROMvdd") or die;
-   my @msg = <FROMvdd>;
+   sleep 1 until -r $ctlFROMvdd;
+
+   # read from control fifo
+print ">>vddTester opening control fifo to read<<\n";
+   open(ctlFROMvdd, "< $ctlFROMvdd") or die;
+   my @msg = <ctlFROMvdd>;
    print color("blue"), "received '", @msg, "'", color("white"), "\n";
-   close(FROMvdd);
+   close(ctlFROMvdd);
+print ">>vddTester read from control fifo<<\n";
+
+   # read from debug fifo
+print ">>vddTester opening debug fifo to read<<\n";
+   open(dbgFROMvdd, "< $dbgFROMvdd") or die;
+   @msg = <dbgFROMvdd>;
+   print color("blue"), "received '", @msg, "'", color("white"), "\n";
+   close(dbgFROMvdd);
+print ">>vddTester read from debug fifo<<\n";
 }
 
 
@@ -166,9 +186,9 @@ sub sendToVDD {
    my $stuffToSend = (shift or $prevCommand);
 
    print color("blue"), "sending  '$stuffToSend'", color("white"), "\n";
-   open(TOvdd, "> $TOvdd") or die;  # blocks until there is a reader
-   print TOvdd $stuffToSend;
-   close(TOvdd);
+   open(ctlTOvdd, "> $ctlTOvdd") or die;  # blocks until there is a reader
+   print ctlTOvdd $stuffToSend;
+   close(ctlTOvdd);
 
    $prevCommand = $stuffToSend;
 }

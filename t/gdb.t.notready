@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 
 use File::Which;
-use VimDebug::Debugger::Test;
-use VimDebug::Debugger::Gdb;
+use VimDebug::DebuggerInterface::Test;
+use VimDebug::DebuggerInterface::Gdb;
 use Test::More;
 
-if (not defined File::Which::which($VimDebug::Debugger::Gdb::debuggerPath)) {
+if (not defined File::Which::which($VimDebug::DebuggerInterface::Gdb::debuggerPath)) {
    plan skip_all => "can't find gdb";
 }
 
-my $test = VimDebug::Debugger::Test->new(debuggerName => 'Gdb');
+my $test = VimDebug::DebuggerInterface::Test->new(debuggerName => 'Gdb');
 Test::Class->runtests($test);

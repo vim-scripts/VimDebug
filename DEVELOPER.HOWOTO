@@ -1,33 +1,22 @@
 DEVELOPER HOWTO
 
-if you want to contribute that would be fantastic.  check out the todo
-list.  or email me: vimDebug at iijo dot org.
-
 if you just want to add a new debgger to vimDebug, its fairly easy.  really.
-here's how:
-
-
-
-HOW TO ADD A DEBUGGER FOR YOUR LANGUAGE (ITS PRETTY EASY)
+here's how in 4 steps:
 
 step 0:
    learn perl.
 
 step 1:
    read the ARCHITECTURE document (its short and straightforward)
+   perldoc VimDebug::DebuggerInterface
+   perldoc VimDebug::DebuggerInterface::Base
+   perldoc VimDebug::DebuggerInterface::Python
 
 step 2:
-   create debuggerName.pm
-
-   make it inherit from Debugger.pm, like this:
-      package VimDebug::Debugger::Gdb;
-      use VimDebug::Debugger;
-      @ISA = qw( VimDebug::Debugger );
-   then implement the callback functions in Debugger.pm (step(), _next(),
-   cont(), etc.).
+   write lib/VimDebug/DebuggerInterface/DebuggerName.pm (not so hard)
 
 step 3:
-   edit DBGRgetDebuggerName() in vimDebug.vim
+   edit DBGRgetDebuggerName() in vimDebug.vim if necessary.
 
    add some lines that look something like this:
 
@@ -39,12 +28,5 @@ step 3:
    example its expected that someone has written a Jdb.pm and that vdd.pl can
    find it.
 
-
 step 4:
-   send me the code!  or questions or suggestions.
-   email: vimDebug at iijo dot org
-
-
-
-
-
+   send me the code!  or questions or suggestions or bugs. 

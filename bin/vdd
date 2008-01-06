@@ -15,14 +15,21 @@
 use strict;
 use File::Basename;
 use Getopt::Long;
+use UNIVERSAL;
 use vars qw(
    $unix $sessionId $debuggerName $sourcePath @commandLineOptions $help_option
-   $TOvim $FROMvim $debugger $debug_option $color_option
+   $ctlTOvim $ctlFROMvim $dbgTOvim $dbgFROMvim $debugger $debug_option
+   $color_option
 );
 
 $unix         = 1; # valid values are 1 and 0
 $debug_option = 0;
 $color_option = 0;
+my $LINE_INFO      = "vimDebug:";
+my $COMPILER_ERROR = "compiler error";
+my $RUNTIME_ERROR  = "runtime error";
+my $APP_EXITED     = "application exited";
+my $DBGR_READY     = "debugger ready";
 
 $SIG{INT} = \&signalHandler;
 getCommandLineOptions();
@@ -51,10 +58,11 @@ sub usage {
    print "
 Usage: vdd SESSION_ID DEBUGGER SOURCEPATH [DBGR_CMDLINE_OPTS]
 
-The vim debugger daemon uses the perl module VimDebug::Debugger::DEBUGGER to
+The vim debugger daemon uses the perl module VimDebug::DebuggerInterface::DEBUGGER to
 invoke a debugger on the code in the program located at SOURCEPATH.
 Communication with the daemon occurs via fifos located at
-\".vddTOvim.SESSION_ID\" and \".vimTOvdd.SESSION_ID\".  Any command line
+\".ctl.vddTOvim.SESSION_ID\", \".ctl.vimFROMvdd.SESSION_ID\",
+\".dbg.vddTOvim.SESSION_ID\", \".dbg.vimFROMvdd.SESSION_ID\".  Any command line
 options are passed on to the debugger.
 
 "; exit(0);
@@ -64,8 +72,10 @@ options are passed on to the debugger.
 sub init {
    $| = 1;
 
-   $TOvim   = ".vddTOvim." . $sessionId;   # fifo to write to   VIM
-   $FROMvim = ".vimTOvdd." . $sessionId;   # fifo to read  from VIM
+   $ctlTOvim   = ".ctl.vddTOvim." . $sessionId; # control fifo; write to   VIM
+   $ctlFROMvim = ".ctl.vimTOvdd." . $sessionId; # control fifo; read  from VIM
+   $dbgTOvim   = ".dbg.vddTOvim." . $sessionId; # debug   fifo; write to   VIM
+   $dbgFROMvim = ".dbg.vimTOvdd." . $sessionId; # debug   fifo; read  from VIM
 
    if ($color_option) {
       eval('require Term::ANSIColor;import Term::ANSIColor;') and
@@ -75,9 +85,10 @@ sub init {
 
 
 sub main {
-
-   makeNamedPipe($FROMvim);
-   makeNamedPipe($TOvim);
+   makeNamedPipe($ctlFROMvim); # control fifo
+   makeNamedPipe($ctlTOvim);
+   makeNamedPipe($dbgFROMvim); # debugger fifo
+   makeNamedPipe($dbgTOvim);
    startDebugger();
 
    # loop until request to exit
@@ -85,28 +96,28 @@ sub main {
       my $command = readFromVim();     # blocks until there is something to read
 
       for ($command) {   # this works like a switch statement
-         /^next$/o                     and _next($command)             and last;
-         /^step$/o                     and step($command)              and last;
-         /^break:\d+:\S+$/o            and setBreakPoint($command)     and last;
-         /^clear:\d+:\S+$/o            and clearBreakPoint($command)   and last;
-         /^clearAll$/o                 and clearAllBreakPoints()       and last;
-         /^cont$/o                     and cont()                      and last;
-         /^printExpression:.+$/o       and printExpression($command)   and last;
-         /^command:.+$/o               and command($command)           and last;
-         /^restart$/o                  and restart()                   and last;
-         /^quit$/o                     and quit()                      and last;
-         sendToVim("vdd: bad command");
+         /^break:(\d+):(.+)$/o     && act('setBreakPoint',   $1, $2) && last;
+         /^clear:(\d+):(.+)$/o     && act('clearBreakPoint', $1, $2) && last;
+         /^clearAll$/o             && act('clearAllBreakPoints')     && last;
+         /^printExpression:(.+)$/o && act('printExpression', $1)     && last;
+         /^command:(.+)$/o         && act('command', $1)             && last;
+         /^(\w+)$/                 && act($1)                        && last;
+         sendToVim("vdd: bad command");                                 last;
       }
    }
-
 }
 
 sub END {
-   close $FROMvim    if defined $FROMvim;
-   close $TOvim      if defined $TOvim;
+   close $ctlFROMvim    if defined $ctlFROMvim;
+   close $ctlTOvim      if defined $ctlTOvim;
+   close $dbgFROMvim    if defined $dbgFROMvim;
+   close $dbgTOvim      if defined $dbgTOvim;
 
-   unlink $FROMvim   if defined $FROMvim;
-   unlink $TOvim     if defined $TOvim;
+   unlink $ctlFROMvim   if defined $ctlFROMvim;
+   unlink $ctlTOvim     if defined $ctlTOvim;
+   unlink $dbgFROMvim   if defined $dbgFROMvim;
+   unlink $dbgTOvim     if defined $dbgTOvim;
+
    exit;
 }
 
@@ -149,8 +160,8 @@ sub logger {
 
 # blocks until there is something to read
 sub readFromVim {
-   open(FROMvim, "< $FROMvim") or quit();
-   my $from = <FROMvim>;
+   open(ctlFROMvim, "< $ctlFROMvim") or act('quit');
+   my $from = <ctlFROMvim>;
    logger("received '$from'") if $debug_option;
    return $from;
 }
@@ -162,93 +173,58 @@ sub readFromVim {
 # then you can't debug over a telnet session.
 sub sendToVim {
    my $stuffToSend = shift;
+   my $debugOutput = shift;
 
    logger("sending  '$stuffToSend'") if $debug_option;
-   open(TOvim, "> $TOvim") or quit();
-   print TOvim $stuffToSend;
-   close(TOvim);
+   open(ctlTOvim, "> $ctlTOvim") or act('quit');
+   print ctlTOvim $stuffToSend;
+   close(ctlTOvim);
+
+   logger("sending  '$debugOutput'") if $debug_option;
+   open(dbgTOvim, "> $dbgTOvim") or act('quit');
+   print dbgTOvim $debugOutput;
+   close(dbgTOvim);
 }
 
 sub startDebugger {
 
    # load module
-   my $moduleName = 'VimDebug/Debugger/' . $debuggerName . '.pm';
+   my $moduleName = 'VimDebug/DebuggerInterface/' . $debuggerName . '.pm';
    require $moduleName ;
 
    # create debugger object
-   $debuggerName = 'VimDebug::Debugger::' . $debuggerName;
+   $debuggerName = 'VimDebug::DebuggerInterface::' . $debuggerName;
    $debugger = eval $debuggerName . "->new();";
    die "no such module exists: $debuggerName" unless defined $debugger;
 
-   sendToVim($debugger->startDebugger($sourcePath, @commandLineOptions));
+   act("startDebugger", $sourcePath, @commandLineOptions);
 }
 
 
-# "_next()" is named funny because "next" is a perl keyword
-sub _next {
-   sendToVim($debugger->next());
+# have the debugger perform an action
+sub act {
+   my $action  = shift or die;
+   my @options = @_;
+
+   if (! UNIVERSAL::can($debugger, $action)) {
+      sendToVim("vdd: bad command", "\n");
+      return 1;
+   }
+
+   my $rv = eval '$debugger->' . $action . '(@options);';
+   if ($action eq 'quit') {
+      exit();
+   }
+   elsif (defined $debugger->lineNumber and defined $debugger->filePath) {
+      sendToVim(
+         $LINE_INFO . $debugger->lineNumber . ":" . $debugger->filePath, 
+         $debugger->output
+      );
+   }
+   else {
+      sendToVim($DBGR_READY, $debugger->output);
+   }
+
+   return 1;
 }
 
-
-sub step {
-   sendToVim($debugger->step());
-}
-
-
-sub cont {
-   sendToVim($debugger->cont());
-}
-
-
-sub setBreakPoint {
-   my $command = shift or die;
-
-   $command =~ /^break:(\d+):(.*)$/o or die;
-   my $lineNumber = $1;
-   my $fileName = $2;
-
-   sendToVim($debugger->setBreakPoint($lineNumber, $fileName));
-}
-
-sub clearBreakPoint {
-   my $command = shift or die;
-
-   $command =~ /^clear:(\d+):(.*)$/o or die;
-   my $lineNumber = $1;
-   my $fileName = $2;
-
-   sendToVim($debugger->clearBreakPoint($lineNumber, $fileName));
-}
-
-
-sub clearAllBreakPoints {
-   sendToVim($debugger->clearAllBreakPoints());
-}
-
-
-sub printExpression {
-   my $command = shift or die;
-   $command =~ /^printExpression:(.+)$/o or die;
-   my $expressionToPrint = $1;
-
-   sendToVim($debugger->printExpression($expressionToPrint));
-}
-
-
-sub command {
-   my $command = shift or die;
-   $command =~ /^command:(.+)$/o or die;
-   $command = $1;
-
-   sendToVim($debugger->command($command));
-}
-
-
-sub restart {
-   sendToVim($debugger->restart());
-}
-
-sub quit {
-   $debugger->quit() if defined $debugger;
-   exit();
-}

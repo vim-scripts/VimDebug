@@ -15,10 +15,8 @@
 map <F12>      :call DBGRstartVimDebuggerDaemon(' ')<cr>
 map <Leader>s/ :DBGRstartVDD
 
-map <F2>       :call DBGRconsole()<CR>
-
-map <F7>       :call DBGRnext()<CR>
-map <F8>       :call DBGRstep()<CR>
+map <F7>       :call DBGRstep()<CR>
+map <F8>       :call DBGRnext()<CR>
 map <F9>       :call DBGRcont()<CR>                          " continue
 
 map <Leader>b  :call DBGRsetBreakPoint()<CR>
@@ -62,7 +60,7 @@ sign define empty       linehl=empty
 " global variables
 
 let g:DBGRprogramArgs     = ""
-let g:DBGRconsoleHeight   = 13
+let g:DBGRconsoleHeight   = 7
 let g:DBGRlineNumbers     = 1
 let g:DBGRshowConsole     = 1
 
@@ -76,8 +74,10 @@ let s:APP_EXITED      = "application exited"
 let s:DBGR_READY      = "debugger ready"
 
 let s:sessionId       = system("perl -e 'print int(rand(99999))'") " random num
-let s:FROMvdd         = ".vddTOvim." . s:sessionId     " fifo to read  from vdd
-let s:TOvdd           = ".vimTOvdd." . s:sessionId     " fifo to write to   vdd
+let s:ctlFROMvdd      = ".ctl.vddTOvim." . s:sessionId " control fifo to read  from vdd
+let s:ctlTOvdd        = ".ctl.vimTOvdd." . s:sessionId " control fifo to write to   vdd
+let s:dbgFROMvdd      = ".dbg.vddTOvim." . s:sessionId " debug out fifo to read  from vdd
+let s:dbgTOvdd        = ".dbg.vimTOvdd." . s:sessionId " debug out fifo to write to   vdd
 
 let s:lineNumber      = 0
 let s:fileName        = ""
@@ -134,19 +134,19 @@ function! DBGRstartVimDebuggerDaemon(...)
    echo "\rstarting the debugger..."
 
    " loop until vdd says the debugger is done loading
-   while !filewritable(s:FROMvdd)
+   while !filewritable(s:ctlFROMvdd)
       " this works in gvim but is misleading on the console
       " echo "\rwaiting for debugger to start (hit <C-c> to give up)..."
       continue
    endwhile
-  "let l:debuggerReady = system('cat ' . s:FROMvdd)
+  "let l:debuggerReady = system('cat ' . s:ctlFROMvdd)
 
    if has("autocmd")
      autocmd VimLeave * call DBGRquit()
    endif
 
    if g:DBGRshowConsole == 1
-      call DBGRconsole()
+      call DBGRopenConsole()
    endif
 
    redraw!
@@ -163,7 +163,7 @@ function! DBGRnext()
    endif
    echo "\rnext"
 
-   call system('echo "next" >> ' . s:TOvdd) " send msg to vdd
+   call system('echo "next" >> ' . s:ctlTOvdd) " send msg to vdd
 
    call DBGRhandleCmdResult()
 endfunction
@@ -177,7 +177,7 @@ function! DBGRstep()
    endif
    echo "\rstep"
 
-   call system('echo "step" >> ' . s:TOvdd) " send msg to vdd
+   call system('echo "step" >> ' . s:ctlTOvdd) " send msg to vdd
 
    call DBGRhandleCmdResult()
 endfunction
@@ -191,7 +191,7 @@ function! DBGRcont()
    endif
    echo "\rcontinue"
 
-   call system('echo "cont" >> ' . s:TOvdd) " send msg to vdd
+   call system('echo "cont" >> ' . s:ctlTOvdd) " send msg to vdd
 
    call DBGRhandleCmdResult()
 endfunction
@@ -220,8 +220,8 @@ function! DBGRsetBreakPoint()
 
 
    " tell the debugger about the new break point
-   "call system('echo "break:' . l:currLineNr . ':' . l:currFileName . '" >> ' . s:TOvdd)
-   silent exe "redir >> " . s:TOvdd . '| echon "break:' . l:currLineNr . ':' . l:currFileName . '" | redir END'
+   "call system('echo "break:' . l:currLineNr . ':' . l:currFileName . '" >> ' . s:ctlTOvdd)
+   silent exe "redir >> " . s:ctlTOvdd . '| echon "break:' . l:currLineNr . ':' . l:currFileName . '" | redir END'
 
 
    let s:breakPointArray = MvAddElement(s:breakPointArray, s:sep, l:id)
@@ -236,7 +236,7 @@ function! DBGRsetBreakPoint()
    endif
 
    "" block until the debugger is ready
-   "let l:debuggerReady = system('cat ' . s:FROMvdd)
+   "let l:debuggerReady = system('cat ' . s:ctlFROMvdd)
    "redraw! | echo "\rbreakpoint set"
 
    call DBGRhandleCmdResult("breakpoint set")
@@ -265,8 +265,8 @@ function! DBGRclearBreakPoint()
 
 
    " tell the debugger about the deleted break point
-   "call system('echo "clear:' . l:currLineNr . ':' . l:currFileName . '" >> ' . s:TOvdd)
-   silent exe "redir >> " . s:TOvdd . '| echon "clear:' . l:currLineNr . ':' . l:currFileName . '" | redir END'
+   "call system('echo "clear:' . l:currLineNr . ':' . l:currFileName . '" >> ' . s:ctlTOvdd)
+   silent exe "redir >> " . s:ctlTOvdd . '| echon "clear:' . l:currLineNr . ':' . l:currFileName . '" | redir END'
 
 
    let s:breakPointArray = MvRemoveElement(s:breakPointArray, s:sep, l:id)
@@ -278,7 +278,7 @@ function! DBGRclearBreakPoint()
    endif
 
    "" block until the debugger is ready
-   "let l:debuggerReady = system('cat ' . s:FROMvdd)
+   "let l:debuggerReady = system('cat ' . s:ctlFROMvdd)
    "redraw! | echo "\rbreakpoint disabled"
 
    call DBGRhandleCmdResult("breakpoint disabled")
@@ -299,14 +299,14 @@ function! DBGRclearAllBreakPoints()
    let l:currLineNr   = line(".")
    let l:id           = DBGRcreateId(l:bufNr, l:currLineNr)
 
-   silent exe "redir >> " . s:TOvdd . '| echon "clearAll" | redir END'
+   silent exe "redir >> " . s:ctlTOvdd . '| echon "clearAll" | redir END'
 
    " do this in case the last current line had a break point on it
    call DBGRunplaceTheLastCurrentLineSign()              " unplace the old sign
    call DBGRplaceCurrentLineSign(s:lineNumber, s:fileName) " place the new sign
 
    "" block until the debugger is ready
-   "let l:debuggerReady = system('cat ' . s:FROMvdd)
+   "let l:debuggerReady = system('cat ' . s:ctlFROMvdd)
    "redraw! | echo "\rall breakpoints disabled"
 
    call DBGRhandleCmdResult("all breakpoints disabled")
@@ -330,7 +330,7 @@ function! DBGRprintExpression(...)
          let l:i = l:i + 1
       endwhile
 
-      call system("echo 'printExpression:" . l:expression . "' >> " . s:TOvdd)
+      call system("echo 'printExpression:" . l:expression . "' >> " . s:ctlTOvdd)
 
       call DBGRhandleCmdResult()
    endif
@@ -357,7 +357,7 @@ function! DBGRcommand(...)
       endwhile
 
       " issue command to debugger
-      call system( "echo 'command:" . l:command . "' >> " . s:TOvdd )
+      call system( "echo 'command:" . l:command . "' >> " . s:ctlTOvdd )
 
       call DBGRhandleCmdResult()
    endif
@@ -370,7 +370,7 @@ function! DBGRrestart()
       return
    endif
 
-   call system( 'echo "restart" >> ' . s:TOvdd )
+   call system( 'echo "restart" >> ' . s:ctlTOvdd )
 
    " do after the system() call so that nongui vim doesn't show a blank screen
    echo "\rrestarting..."
@@ -393,8 +393,9 @@ function! DBGRquit()
    call DBGRunplaceEmptySigns()
    call DBGRunplaceTheLastCurrentLineSign()
    call DBGRsetNoLineNumbers()
+   call DBGRcloseConsole()
 
-   call system('echo "quit" >> ' . s:TOvdd)
+   call system('echo "quit" >> ' . s:ctlTOvdd)
 
    if has("autocmd")
      autocmd! VimLeave * call DBGRquit()
@@ -527,42 +528,24 @@ function! DBGRgetFileExtension(path)
    return l:temp
 endfunction
 
-"
-" when the user issues a command via DBGRcommand() the output can be
-" anything. this function handles the resulting possible outcomes from vdd
-"
-" if the output matches s:LINE_INFO,
-" then we should assume that a:cmdResult contains line number information and
-" that the user must have issued a command like step or next.  in this
-" situation l:cmdResult will have the following format:
-"    s:LINE_INFO . 'lineNumber:fileName'
-" in this case, l:cmdResult is handled the same way DBGRstep() would handle
-" the situation.  ie, by calling DBGRdoCurrentlLineMagicStuff()
-"
-" if the output == s:APP_EXITED,
-" then the program being debugged has terminated
-"
-" if the output == s:COMPILER_ERROR,
-" then we are a debugging a scripting language and compilation failed.
-"
-" otherwise, just echo the debugger's output
-"
-" returns nothing
+
 function! DBGRhandleCmdResult(...)
 
-   " get command results from the debugger
-   let l:cmdResult = system('cat ' . s:FROMvdd)
+   " get command results from control fifo
+   let l:cmdResult = system('cat ' . s:ctlFROMvdd)
 
    if match(l:cmdResult, '^' . s:LINE_INFO . '\d\+:.*$') != -1
       let l:cmdResult = substitute(l:cmdResult, '^' . s:LINE_INFO, "", "")
-      call DBGRdoCurrentLineMagicStuff(l:cmdResult)
+      if a:0 <= 0 || (a:0 > 0 && match(a:1, 'breakpoint') == -1)
+         call DBGRdoCurrentLineMagicStuff(l:cmdResult)
+      endif
       if a:0 > 0
          echo "\r" . a:1 . "                    "
       endif
 
    elseif l:cmdResult == s:APP_EXITED
       call DBGRhandleProgramTermination()
-      redraw! | echo "\rthe application being debugged terminated"
+      redraw! | echo "\rthe application being debugged terminated hoooo"
 
    elseif match(l:cmdResult, '^' . s:COMPILER_ERROR) != -1
       " call confirm(substitute(l:cmdResult, '^' . s:COMPILER_ERROR, "", ""), "&Ok")
@@ -592,6 +575,10 @@ function! DBGRhandleCmdResult(...)
       endif
 
    endif
+
+   " get results from debug out fifo
+   let l:dbgOut = system('cat ' . s:dbgFROMvdd)
+   call DBGRprint(l:dbgOut)
 
    return
 endfunction
@@ -638,6 +625,11 @@ function! DBGRjumpToLine(lineNumber, fileName)
    " no buffer with this file has been loaded
    if !bufexists(bufname(l:fileName))
       exe ":e! " . l:fileName
+   endif
+
+   let l:winNr = bufwinnr(bufnr(l:fileName))
+   if l:winNr != -1
+      exe l:winNr . "wincmd w"
    endif
 
    " make a:fileName the current buffer
@@ -687,8 +679,6 @@ function! DBGRplaceCurrentLineSign(lineNumber, fileName)
    let s:bufNr = l:bufNr
 
 endfunction
-
-"
 " if the program being debugged has terminated, this function turns off the
 " currentline sign but leaves the breakpoint signs on.
 "
@@ -704,23 +694,33 @@ endfunction
 
 " debugger console functions
 
-function! DBGRconsole()
+function! DBGRopenConsole()
    new "debugger console"
-   exe "resize " . g:DBGRconsoleHeight
-   set buftype=nofile
    let s:consoleBufNr = bufnr('%')
+   exe "resize " . g:DBGRconsoleHeight
+   exe "sign place 9999 line=1 name=empty buffer=" . s:consoleBufNr
+   call DBGRsetLineNumbers()
+   set buftype=nofile
    wincmd p
+endfunction
+function! DBGRcloseConsole()
+   let l:consoleWinNr = bufwinnr(s:consoleBufNr)
+   if l:consoleWinNr == -1
+      return
+   endif
+   exe l:consoleWinNr . "wincmd w"
+   q
 endfunction
 function! DBGRprint(msg)
    let l:consoleWinNr = bufwinnr(s:consoleBufNr)
    if l:consoleWinNr == -1
-      call confirm(a:msg, "&Ok")
-      return
+      "call confirm(a:msg, "&Ok")
+      call DBGRopenConsole()
+      let l:consoleWinNr = bufwinnr(s:consoleBufNr)
    endif
-
    exe l:consoleWinNr . "wincmd w"
-   call append('$', split(a:msg, '\n'))
-   call append('$', " ")
+
+   exe 'normal GA' . a:msg . ''
    normal G
    wincmd p
 endfunction
