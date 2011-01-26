@@ -1,17 +1,12 @@
-# Ruby.pm
-#
-# perl debugger interface for vimDebug
-#
 # (c) eric johnson 2002-3020
-# distribution under the GPL
-#
 # email: vimDebug at iijo dot org
 # http://iijo.org
-#
-# $Id: Ruby.pm 93 2007-12-22 21:05:20Z eric $
 
 
 package VimDebug::DebuggerInterface::Ruby;
+BEGIN {
+  $VimDebug::DebuggerInterface::Ruby::VERSION = '0.5';
+}
 
 use strict;
 use warnings 'FATAL' => 'all';

@@ -1,10 +1,6 @@
 # (c) eric johnson 2002-3020
-# distribution under the GPL
-#
 # email: vimDebug at iijo dot org
 # http://iijo.org
-#
-# $Id: TestPerlDebugger.pm 67 2005-10-04 22:35:52Z eric $
 #
 #
 # ALL DEBUGGER PACKAGES SHOULD PASS ALL TESTS
@@ -40,6 +36,9 @@
 
 
 package VimDebug::DebuggerInterface::Test;
+BEGIN {
+  $VimDebug::DebuggerInterface::Test::VERSION = '0.5';
+}
 
 use strict;
 use warnings 'FATAL' => 'all';

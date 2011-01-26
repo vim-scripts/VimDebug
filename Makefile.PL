@@ -1,47 +1,65 @@
-use ExtUtils::MakeMaker;
+
+use strict;
+use warnings;
+
+BEGIN { require 5.006; }
+
+use ExtUtils::MakeMaker 6.31;
 
 
-WriteMakefile(
-   NAME         => 'VimDebug',
-   AUTHOR       => 'Eric Johnson <perl at nospamthanks.iijo.nospamno.org>',
-   VERSION_FROM => 'VERSION',
-   EXE_FILES    => ['bin/vdd','bin/vddTester'],
-   PREREQ_PM    => {
-      'File::Which'  => 0,
-      'Getopt::Long' => 0,
-      'IPC::Run'     => 0,
-      'Test::Class'  => 0,
-      'Test::More'   => 0,
-   },
-   dist         => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-   clean        => { FILES => 'VimDebug-*' },
+
+my %WriteMakefileArgs = (
+  'ABSTRACT' => 'Debugger interface to many debuggers',
+  'AUTHOR' => 'Eric Johnson <vimdebug at iijo dot org>',
+  'BUILD_REQUIRES' => {
+    'English' => '0',
+    'File::Which' => '0'
+  },
+  'CONFIGURE_REQUIRES' => {
+    'ExtUtils::MakeMaker' => '6.31'
+  },
+  'DISTNAME' => 'VimDebug',
+  'EXE_FILES' => [
+    'bin/vddTester',
+    'bin/vdd'
+  ],
+  'LICENSE' => 'perl',
+  'NAME' => 'VimDebug',
+  'PREREQ_PM' => {
+    'Carp' => '0',
+    'Cwd' => '0',
+    'File::Basename' => '0',
+    'File::Spec' => '0',
+    'Getopt::Long' => '0',
+    'IO::Pty' => '0',
+    'IPC::Run' => '0',
+    'UNIVERSAL' => '0',
+    'vars' => '0'
+  },
+  'VERSION' => '0.5',
+  'test' => {
+    'TESTS' => 't/*.t'
+  }
 );
 
 
-sub MY::postamble {
-
-	if (getpwuid($<) =~ /^root/) {
-		return '
-
-installvim :
-	$(CP) vim/plugin/*.vim /usr/share/vim/vimfiles/plugin/
-	$(CP) vim/doc/*.txt    /usr/share/vim/vimfiles/doc/
-
-		';
-	}
-
-   return '
-
-installvim :
-	$(CP) vim/plugin/*.vim $(HOME)/.vim/plugin/
-	$(CP) vim/doc/*.txt    $(HOME)/.vim/doc/
-
-installvim_windows :
-	$(CP) vim\plugin\*.vim $(VIM)\vimfiles\plugin\
-	$(CP) vim\doc\*.txt    $(VIM)\vimfiles\doc\
-
-';
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
 }
 
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
 
-# vim: noexpandtab: shiftwidth=3: tabstop=3:
+WriteMakefile(%WriteMakefileArgs);
+
+
+

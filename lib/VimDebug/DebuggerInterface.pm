@@ -4,7 +4,7 @@ VimDebug::DebuggerInterface - Debugger interface to many debuggers
 
 =head1 VERSION
 
-$Id: Debugger.pm 93 2007-12-22 21:05:20Z eric $
+version 0.5
 
 =head1 SYNOPSIS
 
@@ -51,6 +51,9 @@ The following sections describe this API.
 =cut
 
 package VimDebug::DebuggerInterface;
+BEGIN {
+  $VimDebug::DebuggerInterface::VERSION = '0.5';
+}
 use strict;
 use warnings 'FATAL' => 'all';
 use Carp;

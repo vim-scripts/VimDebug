@@ -1,17 +1,12 @@
-# Perl.pm
-#
-# perl debugger interface for vimDebug
-#
 # (c) eric johnson 2002-3020
-# distribution under the GPL
-#
 # email: vimDebug at iijo dot org
 # http://iijo.org
-#
-# $Id: Perl.pm 93 2007-12-22 21:05:20Z eric $
 
 
 package VimDebug::DebuggerInterface::Perl;
+BEGIN {
+  $VimDebug::DebuggerInterface::Perl::VERSION = '0.5';
+}
 
 use strict;
 use warnings 'FATAL' => 'all';
@@ -150,22 +145,6 @@ sub parseForLineNumber {
       $self->lineNumber($3);
    }
    return undef;
-}
-
-sub output {
-   my $self = shift or die;
-   my $output;
-
-   if (@_) {
-      $output = shift;
-      $output =~ s/\n/\n/mg;
-      $output =~ s//\n/mg;
-      $output =~ s///mg;
-      return $self->SUPER::output($output);
-   }
-   else {
-      return $self->SUPER::output();
-   }
 }
 
 

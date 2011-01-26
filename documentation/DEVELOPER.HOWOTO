@@ -1,0 +1,21 @@
+VimDebug is now on github: https://github.com/kablamo/VimDebug
+
+
+If you just want to add support for your debugger, its easy.  Really.  Here's
+how in just 3 steps:
+
+STEP 1: Read the ARCHITECTURE document (its short and easy)
+        perldoc VimDebug::DebuggerInterface
+        perldoc VimDebug::DebuggerInterface::Base
+        perldoc VimDebug::DebuggerInterface::Python
+
+STEP 2: Create lib/VimDebug/DebuggerInterface/DebuggerName.pm (not hard)
+
+STEP 3: Look at DBGRgetDebuggerName() in vimDebug.vim.  If necessary, add code
+        like:
+
+           elseif l:fileExtension == ".java"
+              let l:debugger = "Jdb"
+              return l:debugger
+
+        l:debugger should match the name of your Perl module in step 2.  

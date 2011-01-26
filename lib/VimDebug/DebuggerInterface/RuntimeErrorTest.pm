@@ -1,4 +1,7 @@
 package VimDebug::DebuggerInterface::RuntimeErrorTest;
+BEGIN {
+  $VimDebug::DebuggerInterface::RuntimeErrorTest::VERSION = '0.5';
+}
 
 use strict;
 use warnings 'FATAL' => 'all';

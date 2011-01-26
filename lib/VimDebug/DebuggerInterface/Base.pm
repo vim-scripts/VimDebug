@@ -4,7 +4,7 @@ VimDebug::DebuggerInterface::Base - a base class for VimDebug::DebuggerInterface
 
 =head1 VERSION
 
-$Id: Debugger.pm 93 2007-12-22 21:05:20Z eric $
+version 0.5
 
 =head1 SYNOPSIS
 
@@ -62,11 +62,15 @@ language of their choice.
 =cut
 
 package VimDebug::DebuggerInterface::Base;
+BEGIN {
+  $VimDebug::DebuggerInterface::Base::VERSION = '0.5';
+}
 
 use strict;
 use warnings 'FATAL' => 'all';
 
 use Carp;
+use IO::Pty;
 use IPC::Run qw(start pump finish timeout);
 use base qw(VimDebug::DebuggerInterface);
 
@@ -216,7 +220,9 @@ sub output {
 
    if (@_) {
       $output = shift;
-      $output =~ s///mg;
+      # vim is not displaying newline characters correctly for some reason.
+      # this localizes the newlines.
+      $output =~ s/(?:\015{1,2}\012|\015|\012)/\n/sg;
       $self->{output} = $output;
    }
 

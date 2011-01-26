@@ -1,45 +1,39 @@
 This is a mirror of http://www.vim.org/scripts/script.php?script_id=663
 
-VimDebug is designed to integrate your favorite debugger with Vim.  Currently supported debuggers are Perl, Ruby, and Python.  There is untested support for gdb as well in this release.  There are plans to support more languages.  This is a much more mature version than previous releases, but it is still beta.  
+VimDebug gives developers the ability to visually step through their code and set breakpoints.  Currently supported debuggers are Perl, Ruby, and Python.  
 
-This release includes a solid debug console.
-
-Please email me about any problems you may have.
+This plugin is still in beta.  Bug reports are needed.  Code is available on github: https://github.com/kablamo/VimDebug
 
 
 Requirements
 
-unix/linux
-perl
-IPC::Run perl module (http://search.cpan.org/~rsod/IPC-Run-0.80/lib/IPC/Run.pm)
-vim with +signs compiled in.
+Ubuntu/OSX/Unix
+Perl
+A small number of Perl modules
+Vim with +signs compiled in.
 
 
 Usage
 
-
 Set/reset these in your .vimrc if you want:
 
-<F12>      starts the debugger
-<Leader>s/ starts the debugger with command line arguments that you type in
-<F10>      restart debugger.  break points are always saved (for all dbgrs)
-<F11>      exit the debugger
+<F12>      Start the debugger
+<Leader>s/ Start the debugger with command line arguments
+<F10>      Restart debugger.  Break points are saved.
+<F11>      Exit the debugger
 
-<F2>       show console
-<F6>       next
-<F7>       step
-<F8>       continue
+<F2>       Show console
+<F6>       Next
+<F7>       Step
+<F8>       Continue
 
-<Leader>b  set break point on the current line
-<Leader>c  clear break point on the current line
+<Leader>b  Set break point on the current line
+<Leader>c  Clear break point on the current line
 
-<Leader>v  print the value of variable under the cursor
-<Leader>v/ print the value of an expression that you type in
+<Leader>v  Show the value of variable under the cursor
+<Leader>v/ Show the value of any expression
 
-<Leader>/  type in a command for the debugger to execute, and echo the result.
-           (note that its not hard to make everything crash horribly with this
-           command if you do something like change the debugger prompt.)
-
+<Leader>/  Enter a command for the debugger to execute, and echo the result.
 
 let g:DBGRconsoleHeight   = 7
 let g:DBGRlineNumbers      = 1
